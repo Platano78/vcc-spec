@@ -4,7 +4,7 @@
   "title": "Verifiable Completion Contract (VCC) v1",
   "type": "object",
   "required": [
-    "outputSpecVersion",
+    "vccVersion",
     "id",
     "title",
     "summary",
@@ -17,14 +17,14 @@
     "resourceConstraints"
   ],
   "properties": {
-    "outputSpecVersion": {
+    "vccVersion": {
       "const": "sdlaf.vcc/v1"
     },
     "id": {
       "type": "string",
       "minLength": 8,
       "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,}$",
-      "description": "Stable identifier for this OutputSpec instance."
+      "description": "Stable identifier for this VCC instance."
     },
     "title": {
       "type": "string",
