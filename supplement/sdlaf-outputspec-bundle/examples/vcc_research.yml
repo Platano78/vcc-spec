@@ -1,0 +1,171 @@
+vccVersion: "sdlaf.vcc/v1"
+id: "outspec-research-001"
+title: "Competitive landscape research + evidence pack"
+summary: "Produce a publication-grade report with a transparent evidence chain and a reusable dataset."
+
+intent:
+  problemStatement: "Map the landscape of systems similar to SDLAF and position SDLAF uniquely."
+  targetAudience: ["technical leadership", "engineering", "product strategy"]
+  inScope:
+    - "Identify comparable projects/systems (open-source + research)"
+    - "Classify by architecture and capability"
+    - "Extract patterns and gaps"
+    - "Provide actionable positioning recommendations"
+  outOfScope:
+    - "Implementing or integrating any of the discovered systems"
+    - "Private/internal competitor intelligence"
+  constraints:
+    compliance: ["no copyrighted long quotes", "cite sources"]
+    styleGuides: ["clear, technical, no fluff"]
+  successDefinition: "A reader can verify every claim via citations/evidence and reuse the dataset to replicate results."
+
+artifacts:
+  - artifactId: "A1"
+    kind: "specification"
+    subtype: "research-protocol"
+    description: "Search protocol: queries, inclusion/exclusion criteria, time window, data fields collected."
+    formats:
+      - mediaType: "text/markdown"
+        uri: "sdlaf-exports/deliverables/research_protocol.md"
+    required: true
+    dependsOn: []
+    owners: ["role:ResearchLead"]
+    qualityLevel: "production"
+
+  - artifactId: "A2"
+    kind: "dataset"
+    subtype: "landscape-catalog"
+    description: "Machine-readable catalog of systems with fields: name, link, category, claims, evidence, notes."
+    formats:
+      - mediaType: "text/csv"
+        uri: "sdlaf-exports/deliverables/landscape_catalog.csv"
+      - mediaType: "application/json"
+        uri: "sdlaf-exports/deliverables/landscape_catalog.json"
+    required: true
+    dependsOn: ["A1"]
+    owners: ["role:Analyst"]
+    qualityLevel: "production"
+    metadata:
+      schemaRef: "schemas/landscape_catalog.schema.json"
+
+  - artifactId: "A3"
+    kind: "report"
+    subtype: "whitepaper"
+    description: "Narrative report: landscape map, comparisons, positioning, recommendations."
+    formats:
+      - mediaType: "text/markdown"
+        uri: "sdlaf-exports/deliverables/landscape_report.md"
+      - mediaType: "application/pdf"
+        uri: "sdlaf-exports/package/landscape_report.pdf"
+    required: true
+    dependsOn: ["A1", "A2"]
+    owners: ["role:Writer", "role:Editor"]
+    qualityLevel: "production"
+
+  - artifactId: "A4"
+    kind: "appendix"
+    subtype: "evidence-pack"
+    description: "Evidence bundle: source list, notes, snapshots, and extraction justifications."
+    formats:
+      - mediaType: "application/zip"
+        uri: "sdlaf-exports/package/evidence_pack.zip"
+    required: true
+    dependsOn: ["A2", "A3"]
+    owners: ["role:ResearchLead"]
+    qualityLevel: "production"
+
+acceptance:
+  - acId: "AC-RES-1"
+    targetArtifacts: ["A1"]
+    type: "structure"
+    severity: "must"
+    rule:
+      requiredSections: ["Queries", "Sources", "Inclusion Criteria", "Exclusion Criteria", "Data Fields", "Limitations"]
+    evidence:
+      required: true
+      evidenceType: "auto"
+      producedArtifact: "E-AC-RES-1"
+
+  - acId: "AC-RES-2"
+    targetArtifacts: ["A2"]
+    type: "schema"
+    severity: "must"
+    rule:
+      jsonSchema: "schemas/landscape_catalog.schema.json"
+    evidence:
+      required: true
+      evidenceType: "auto"
+      producedArtifact: "E-AC-RES-2"
+
+  - acId: "AC-RES-3"
+    targetArtifacts: ["A3"]
+    type: "traceability"
+    severity: "must"
+    rule:
+      description: "Every non-trivial claim must have a citation or explicit 'UNSOURCED/INFERENCE' label."
+      minCitationCoverage: 0.95
+    evidence:
+      required: true
+      evidenceType: "auto"
+      producedArtifact: "E-AC-RES-3"
+
+  - acId: "AC-RES-4"
+    targetArtifacts: ["A3"]
+    type: "rubric"
+    severity: "must"
+    rule:
+      rubricRef: "RUBRIC-RESEARCH-QUALITY-v1"
+      passThreshold: 4
+    evidence:
+      required: true
+      evidenceType: "ai-judged"
+      producedArtifact: "E-AC-RES-4"
+
+rubrics:
+  - rubricId: "RUBRIC-RESEARCH-QUALITY-v1"
+    scale: [1, 2, 3, 4, 5]
+    anchors:
+      "1": "Unverifiable, unclear, missing key systems"
+      "3": "Reasonable coverage but gaps or weak justification"
+      "5": "Comprehensive, well-justified, replicable"
+    passThreshold: 4
+
+gates:
+  - gateId: "GATE-REVIEW"
+    when: "before_final"
+    requiredApprovals:
+      - type: "ai"
+        role: "role:Editor"
+        rubricId: "RUBRIC-RESEARCH-QUALITY-v1"
+        passThreshold: 4
+
+  - gateId: "GATE-PROVENANCE"
+    when: "before_final"
+    requiredApprovals:
+      - type: "auto"
+        rule:
+          provenancePolicyRef: "PROV-POLICY-v1"
+
+packaging:
+  - packageId: "P-RES-1"
+    inputs: ["A1", "A2", "A3", "A4"]
+    method: "bundle"
+    format: "zip"
+    uri: "sdlaf-exports/package/final_research_bundle.zip"
+    manifestRequired: true
+
+delivery:
+  - deliveryId: "D-RES-1"
+    channel: "filesystem"
+    target: "local"
+    uri: "sdlaf-exports/package/final_research_bundle.zip"
+    notify: ["role:Owner"]
+
+provenancePolicy:
+  policyId: "PROV-POLICY-v1"
+  require: ["inputs.enumerated", "tooling.recorded", "agentActions.logged", "artifactHashes.recorded"]
+  strength: "L1-like"
+
+resourceConstraints:
+  maxIterations: 10
+  stagnationWindow: 3

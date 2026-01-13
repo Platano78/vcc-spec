@@ -1,0 +1,741 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sdlaf.dev/schemas/vcc/v1/schema.json",
+  "title": "Verifiable Completion Contract (VCC) v1",
+  "type": "object",
+  "required": [
+    "outputSpecVersion",
+    "id",
+    "title",
+    "summary",
+    "intent",
+    "artifacts",
+    "acceptance",
+    "packaging",
+    "delivery",
+    "provenancePolicy",
+    "resourceConstraints"
+  ],
+  "properties": {
+    "outputSpecVersion": {
+      "const": "sdlaf.vcc/v1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 8,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,}$",
+      "description": "Stable identifier for this OutputSpec instance."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 3
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 10
+    },
+    "intent": {
+      "$ref": "#/$defs/Intent"
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/Artifact"
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Relationship"
+      },
+      "default": []
+    },
+    "acceptance": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/AcceptanceCriterion"
+      }
+    },
+    "rubrics": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Rubric"
+      },
+      "default": []
+    },
+    "gates": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Gate"
+      },
+      "default": []
+    },
+    "packaging": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/Packaging"
+      }
+    },
+    "delivery": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/Delivery"
+      }
+    },
+    "provenancePolicy": {
+      "$ref": "#/$defs/ProvenancePolicy"
+    },
+    "resourceConstraints": {
+      "$ref": "#/$defs/ResourceConstraints",
+      "default": {
+        "maxIterations": 10,
+        "stagnationWindow": 3
+      }
+    },
+    "riskControls": {
+      "$ref": "#/$defs/RiskControls",
+      "default": {
+        "framework": "custom",
+        "notes": [],
+        "requiredDisclosures": []
+      }
+    }
+  },
+  "$defs": {
+    "NonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "IdString": {
+      "type": "string",
+      "minLength": 2,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "RoleRef": {
+      "type": "string",
+      "pattern": "^role:[A-Za-z0-9][A-Za-z0-9._:-]*$",
+      "description": "References a generated role (e.g., role:ResearchLead)."
+    },
+    "Severity": {
+      "type": "string",
+      "enum": [
+        "must",
+        "should",
+        "may"
+      ]
+    },
+    "EvidenceType": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "ai-judged",
+        "human",
+        "hybrid"
+      ]
+    },
+    "QualityLevel": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "reviewed",
+        "production"
+      ]
+    },
+    "RelationshipType": {
+      "type": "string",
+      "enum": [
+        "derivesFrom",
+        "informs",
+        "implements",
+        "tests",
+        "summarizes",
+        "references",
+        "dependsOn"
+      ]
+    },
+    "Intent": {
+      "type": "object",
+      "required": [
+        "problemStatement",
+        "successDefinition",
+        "inScope",
+        "outOfScope"
+      ],
+      "properties": {
+        "problemStatement": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "targetAudience": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NonEmptyString"
+          },
+          "default": []
+        },
+        "inScope": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/NonEmptyString"
+          }
+        },
+        "outOfScope": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NonEmptyString"
+          },
+          "default": []
+        },
+        "constraints": {
+          "type": "object",
+          "properties": {
+            "timeBudget": {
+              "type": "string"
+            },
+            "costBudget": {
+              "type": "string"
+            },
+            "compliance": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/NonEmptyString"
+              },
+              "default": []
+            },
+            "styleGuides": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/NonEmptyString"
+              },
+              "default": []
+            }
+          },
+          "additionalProperties": true,
+          "default": {}
+        },
+        "successDefinition": {
+          "$ref": "#/$defs/NonEmptyString"
+        }
+      },
+      "additionalProperties": true
+    },
+    "ArtifactFormat": {
+      "type": "object",
+      "required": [
+        "mediaType",
+        "uri"
+      ],
+      "properties": {
+        "mediaType": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "uri": {
+          "$ref": "#/$defs/NonEmptyString"
+        }
+      },
+      "additionalProperties": true
+    },
+    "Artifact": {
+      "type": "object",
+      "required": [
+        "artifactId",
+        "kind",
+        "description",
+        "formats",
+        "required",
+        "dependsOn",
+        "owners",
+        "qualityLevel"
+      ],
+      "properties": {
+        "artifactId": {
+          "$ref": "#/$defs/IdString"
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 2
+        },
+        "subtype": {
+          "type": "string"
+        },
+        "description": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "formats": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/ArtifactFormat"
+          }
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "dependsOn": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IdString"
+          },
+          "default": []
+        },
+        "owners": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/RoleRef"
+          }
+        },
+        "qualityLevel": {
+          "$ref": "#/$defs/QualityLevel"
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "domainTags": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/NonEmptyString"
+              },
+              "default": []
+            },
+            "confidentiality": {
+              "type": "string",
+              "enum": [
+                "public",
+                "internal",
+                "restricted"
+              ],
+              "default": "internal"
+            },
+            "schemaRef": {
+              "type": "string"
+            },
+            "versioning": {
+              "type": "string",
+              "enum": [
+                "semantic",
+                "date",
+                "none"
+              ],
+              "default": "none"
+            }
+          },
+          "additionalProperties": true,
+          "default": {}
+        }
+      },
+      "additionalProperties": true
+    },
+    "Relationship": {
+      "type": "object",
+      "required": [
+        "type",
+        "from",
+        "to"
+      ],
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/RelationshipType"
+        },
+        "from": {
+          "$ref": "#/$defs/IdString"
+        },
+        "to": {
+          "$ref": "#/$defs/IdString"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "EvidenceRequirement": {
+      "type": "object",
+      "required": [
+        "required",
+        "evidenceType"
+      ],
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+        "evidenceType": {
+          "$ref": "#/$defs/EvidenceType"
+        },
+        "producedArtifact": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "AcceptanceRule": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "requiredSections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NonEmptyString"
+          }
+        },
+        "jsonSchema": {
+          "type": "string"
+        },
+        "rubricRef": {
+          "$ref": "#/$defs/IdString"
+        },
+        "passThreshold": {
+          "type": "number"
+        },
+        "minCitationCoverage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "requireTraceMatrix": {
+          "type": "boolean"
+        },
+        "adapter": {
+          "type": "string"
+        },
+        "checklist": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NonEmptyString"
+          }
+        },
+        "passFailFromExitCode": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "AcceptanceCriterion": {
+      "type": "object",
+      "required": [
+        "acId",
+        "targetArtifacts",
+        "type",
+        "severity",
+        "rule",
+        "evidence"
+      ],
+      "properties": {
+        "acId": {
+          "$ref": "#/$defs/IdString"
+        },
+        "targetArtifacts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/IdString"
+          }
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "schema",
+            "structure",
+            "traceability",
+            "consistency",
+            "rubric",
+            "constraint",
+            "execution",
+            "security",
+            "provenance",
+            "custom"
+          ]
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity"
+        },
+        "rule": {
+          "$ref": "#/$defs/AcceptanceRule"
+        },
+        "evidence": {
+          "$ref": "#/$defs/EvidenceRequirement"
+        },
+        "confidenceThreshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.95,
+          "description": "Required confidence for AI-judged validators"
+        },
+        "varianceMax": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.15,
+          "description": "Maximum variance for multi-run AI-judged validators"
+        }
+      },
+      "additionalProperties": true
+    },
+    "Rubric": {
+      "type": "object",
+      "required": [
+        "rubricId",
+        "scale",
+        "anchors",
+        "passThreshold"
+      ],
+      "properties": {
+        "rubricId": {
+          "$ref": "#/$defs/IdString"
+        },
+        "scale": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "number"
+          }
+        },
+        "anchors": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "passThreshold": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": true
+    },
+    "RequiredApproval": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "ai",
+            "human"
+          ]
+        },
+        "role": {
+          "$ref": "#/$defs/RoleRef"
+        },
+        "optional": {
+          "type": "boolean",
+          "default": false
+        },
+        "rubricId": {
+          "$ref": "#/$defs/IdString"
+        },
+        "passThreshold": {
+          "type": "number"
+        },
+        "rule": {
+          "$ref": "#/$defs/AcceptanceRule"
+        }
+      },
+      "additionalProperties": true
+    },
+    "Gate": {
+      "type": "object",
+      "required": [
+        "gateId",
+        "when",
+        "requiredApprovals"
+      ],
+      "properties": {
+        "gateId": {
+          "$ref": "#/$defs/IdString"
+        },
+        "when": {
+          "type": "string",
+          "enum": [
+            "before_final",
+            "before_packaging",
+            "before_delivery"
+          ]
+        },
+        "requiredApprovals": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/RequiredApproval"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "Packaging": {
+      "type": "object",
+      "required": [
+        "packageId",
+        "inputs",
+        "method",
+        "format",
+        "uri",
+        "manifestRequired"
+      ],
+      "properties": {
+        "packageId": {
+          "$ref": "#/$defs/IdString"
+        },
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/IdString"
+          }
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "bundle",
+            "compose",
+            "transform"
+          ]
+        },
+        "format": {
+          "type": "string",
+          "minLength": 2
+        },
+        "uri": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "manifestRequired": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "Delivery": {
+      "type": "object",
+      "required": [
+        "deliveryId",
+        "channel",
+        "target",
+        "uri"
+      ],
+      "properties": {
+        "deliveryId": {
+          "$ref": "#/$defs/IdString"
+        },
+        "channel": {
+          "type": "string",
+          "minLength": 2
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uri": {
+          "$ref": "#/$defs/NonEmptyString"
+        },
+        "notify": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RoleRef"
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": true
+    },
+    "ProvenancePolicy": {
+      "type": "object",
+      "required": [
+        "policyId",
+        "require",
+        "strength"
+      ],
+      "properties": {
+        "policyId": {
+          "$ref": "#/$defs/IdString"
+        },
+        "require": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "inputs.enumerated",
+              "tooling.recorded",
+              "agentActions.logged",
+              "artifactHashes.recorded",
+              "dependencies.recorded",
+              "parameters.recorded",
+              "attestation.signed"
+            ]
+          }
+        },
+        "strength": {
+          "type": "string",
+          "minLength": 2
+        }
+      },
+      "additionalProperties": true
+    },
+    "RiskControls": {
+      "type": "object",
+      "required": [
+        "framework",
+        "notes",
+        "requiredDisclosures"
+      ],
+      "properties": {
+        "framework": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "requiredDisclosures": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": true
+    },
+    "ResourceConstraints": {
+      "type": "object",
+      "properties": {
+        "maxIterations": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 10,
+          "description": "Maximum refinement iterations before forced termination"
+        },
+        "maxTimeMs": {
+          "type": "integer",
+          "minimum": 1000,
+          "description": "Maximum wall-clock time in milliseconds"
+        },
+        "maxCostUsd": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Maximum cost budget in USD"
+        },
+        "stagnationWindow": {
+          "type": "integer",
+          "minimum": 2,
+          "default": 3,
+          "description": "Consecutive iterations without progress before stagnation failure"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

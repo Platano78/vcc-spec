@@ -1,0 +1,262 @@
+\documentclass[11pt]{article}
+
+\usepackage{arxiv}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{hyperref}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{graphicx}
+
+\title{Verifiable Completion Contracts: A Declarative Specification for Outcome-Driven Termination in Autonomous Systems}
+
+\author{
+  Aldwin Polanco \\
+  \texttt{aldwin78@gmail.com}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Autonomous agent and workflow frameworks built on large language models (LLMs) can plan and execute multi-step tasks with tool use, yet they routinely fail a critical systems property: \emph{correct termination}. Many systems declare runs ``complete'' based on procedural conditions such as task exhaustion, iteration limits, or agent self-assessment rather than outcome correctness. This paper introduces \emph{Verifiable Completion Contracts} (VCC), a declarative specification format that defines the necessary and sufficient conditions for declaring an autonomous run complete. A VCC instance specifies required deliverables, acceptance criteria with severity levels (\texttt{MUST}/\texttt{SHOULD}/\texttt{MAY}), validator bindings, evidence requirements, and provenance policy. The central invariant is a \emph{termination law}: a run may terminate successfully if and only if all \texttt{MUST} acceptance criteria are satisfied. VCC synthesizes principles from design-by-contract, lightweight formal methods, acceptance testing, CI/CD gate enforcement, and requirements traceability. We formalize VCC semantics, present an algorithmic integration pattern for contract-driven convergence, and provide a reference schema and adapter interfaces for implementation. The result is an open specification for building autonomous systems that terminate based on verified outcomes rather than procedural progress.
+\end{abstract}
+
+\section{Introduction}
+LLM-based autonomous systems have progressed from single-shot generation to multi-step execution with planning, delegation, and tool invocation. Despite these advances, most systems still lack a rigorous and enforceable definition of ``done.'' In practice, termination is commonly governed by procedural criteria: a task list has been executed, a recursion or iteration limit is reached, a token or budget ceiling is hit, or the agent asserts completion. Such criteria are not equivalent to correctness.
+
+This paper addresses the question: \emph{How can an autonomous execution system define and enforce successful termination such that a run completes if and only if objective acceptance criteria are satisfied?}
+
+We propose \textbf{Verifiable Completion Contracts (VCC)}, a declarative specification format that defines the necessary and sufficient conditions for declaring an autonomous run complete. VCC is released as an open specification to encourage adoption across diverse autonomous systems. A reference implementation is available in SDLAF (Software Development Lifecycle Automation Framework) v3.0. The central design choice is a \emph{termination law}: a run may terminate successfully if and only if no \texttt{MUST} acceptance criteria are failing.
+
+\paragraph{Contributions.} This paper makes three contributions:
+\begin{enumerate}[leftmargin=*]
+  \item A \emph{contract model} (VCC) that specifies required deliverables, acceptance criteria with severity, validator bindings, evidence requirements, and provenance policy.
+  \item A \emph{formal semantics} for contract satisfaction and correct termination, expressed in a minimal mathematical model.
+  \item An \emph{integration pattern} that embeds contract-driven convergence into existing refinement loops without creating a new runtime, using bounded budgets and stagnation detection.
+\end{enumerate}
+
+\section{Problem Definition: Procedural vs.\ Correct Termination}
+Many contemporary agent and orchestration systems expose termination controls primarily as recursion or iteration limits and ad hoc stop conditions. For example, LangGraph documents a recursion limit that raises an error when a step budget is exceeded and recommends setting higher recursion limits for complex graphs \cite{langgraph_recursion_limit_js,langgraph_recursion_limit_py,langgraph_graph_api_py}. While such mechanisms are essential safety features, they are \emph{procedural}: they bound execution but do not define correctness.
+
+We distinguish:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Procedural termination}: A run ends because execution has progressed to a stopping condition (e.g., tasks exhausted, recursion limit reached).
+  \item \textbf{Correct termination}: A run ends successfully only when outcome requirements are satisfied and verified.
+\end{itemize}
+
+The absence of a machine-enforceable completion contract yields a systematic failure mode: \emph{silent success}. Systems may produce deliverables and even run validators, yet still mark runs complete despite failing requirements.
+
+\section{Related Work and Foundations}
+
+VCC is a synthesis of established software engineering and structured-generation foundations, adapted to autonomous LLM-driven systems.
+
+\subsection{Design by Contract and Acceptance Criteria}
+Design by Contract (DbC) formalizes correctness through preconditions, postconditions, and invariants that are checked at module boundaries \cite{meyer_dbc_ieee}.
+VCC treats \emph{acceptance criteria} as postconditions over produced deliverables and \emph{provenance policy} as invariants about traceability and evidence.
+
+\subsection{Lightweight Formal Methods and Executable Specifications}
+Specification languages and lightweight formal methods provide precise, checkable descriptions of desired behaviors (e.g., TLA$^+$ \cite{lamport_specifying_systems_book,lamport_tla_sigops} and Alloy \cite{jackson_alloy_tosem}).
+VCC adopts a deliberately lightweight stance: specifications are executable through validator adapters and machine-checkable evidence rather than theorem proving.
+
+\subsection{Continuous Delivery Gates and Requirements Traceability}
+Acceptance testing and continuous delivery practices enforce quality through automated checks and gated releases \cite{humble_farley_cd}.
+Requirements traceability research emphasizes that requirements quality depends on explicit links between claims, deliverables, and evidence \cite{gotel_finkelstein_traceability,gotel_requirements_traceable_pdf}.
+VCC operationalizes traceability as first-class policy: criteria bind to deliverables, validators emit evidence records, and provenance requirements are enforced before delivery.
+
+\subsection{Structured Generation and Constrained Decoding for LLM Outputs}
+A large body of work targets \emph{structural correctness} of LLM outputs via constrained decoding and grammar-/schema-guided generation.
+Recent systems evaluate constrained decoding frameworks against large corpora of real-world JSON Schemas \cite{jsonschemabench_arxiv}.
+XGrammar accelerates context-free grammar execution to reduce structured-generation overhead \cite{xgrammar_arxiv}.
+Libraries such as Outlines provide JSON Schema and grammar-constrained decoding in practice \cite{outlines_docs}, while Guidance popularized programmatic constraints over LM generation \cite{guidance_msr, llguidance_go_brrr, llguidance_repo}.
+LMQL introduces a query language that compiles constraints and control flow into efficient inference procedures \cite{lmql_paper}.
+In parallel, API-level structured outputs and tool calling expose schema-constrained interfaces for commercial models \cite{openai_structured_outputs_blog, openai_structured_outputs_docs, anthropic_advanced_tool_use}.
+
+
+\subsection{Guardrails and Output Validation Frameworks}
+Beyond structural correctness, guardrails and validation layers filter or score model inputs/outputs to improve reliability and safety \cite{guardrails_position_paper}.
+Practical libraries operationalize such checks via schemas, regex constraints, and custom validators; for example, Jsonformer decomposes JSON generation into fixed-token filling with model-generated values \cite{jsonformer_repo}.
+These systems motivate VCC's emphasis on machine-checkable evidence and explicit acceptance criteria.
+
+
+\paragraph{Positioning.}
+VCC is \emph{not} a replacement for constrained decoding. Instead, it defines a \emph{completion contract} that can be enforced using multiple mechanisms:
+(i) constrained decoding (when available), (ii) post-hoc validation with bounded remediation, and (iii) human or hybrid gates.
+This separation is motivated by provider heterogeneity and the need to express \emph{semantic} and \emph{procedural} constraints (e.g., provenance, multi-artifact dependencies) that exceed the expressiveness of JSON Schema alone.
+
+
+\section{VCC Model and Semantics}
+\subsection{Contract Elements}
+A VCC instance defines:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Deliverables}: required outputs with formats, dependencies, and ownership.
+  \item \textbf{Acceptance criteria}: atomic properties evaluated by validators, each labeled with severity \texttt{MUST}/\texttt{SHOULD}/\texttt{MAY}.
+  \item \textbf{Validators}: pluggable adapters capable of evaluating specific criterion types (e.g., schema, structure, traceability, provenance).
+  \item \textbf{Evidence}: required records (reports, hashes, logs) produced during validation.
+  \item \textbf{Gates, packaging, delivery}: constraints governing when deliverables may be bundled and delivered.
+  \item \textbf{Provenance policy}: required run-record signals (e.g., inputs enumerated, tooling recorded, deliverable hashes recorded).
+\end{itemize}
+
+\subsection{Formal Semantics}
+Let:
+\begin{align}
+  \mathcal{A} &= \{a_1,\dots,a_n\} \quad \text{required deliverables} \\
+  \mathcal{C} &= \{c_1,\dots,c_m\} \quad \text{acceptance criteria} \\
+  \mathcal{C}_M &\subseteq \mathcal{C} \quad \text{criteria with severity MUST}
+\end{align}
+
+Each criterion $c \in \mathcal{C}$ is associated with a validator $V_c$ that returns an evaluation result in $\{\texttt{PASS}, \texttt{FAIL}, \texttt{SKIP}\}$ and may produce evidence deliverables.
+
+\begin{definition}[MUST Satisfaction]
+A contract's MUST set is satisfied if and only if all MUST criteria evaluate to \texttt{PASS}:
+\[
+\mathrm{Satisfied}(\mathcal{C}_M) \iff \forall c \in \mathcal{C}_M: V_c(c)=\texttt{PASS}.
+\]
+\end{definition}
+
+\begin{definition}[Correct Termination]
+A run terminates successfully if and only if the MUST set is satisfied:
+\[
+\mathrm{TerminateSuccess} \iff \mathrm{Satisfied}(\mathcal{C}_M).
+\]
+\end{definition}
+
+\begin{definition}[Resource-Bounded Termination]
+A run terminates when:
+\[
+\mathrm{Terminate} \iff \mathrm{Satisfied}(\mathcal{C}_M) \lor \mathrm{Exhausted}(\mathcal{R})
+\]
+with explicit failure state:
+\[
+\mathrm{TerminateFailure} \iff \mathrm{Exhausted}(\mathcal{R}) \land \neg\mathrm{Satisfied}(\mathcal{C}_M)
+\]
+\end{definition}
+
+Procedural completion (task exhaustion, iteration limit reached) is \emph{not} a success condition under this definition.
+
+\subsection{Formal Model}
+Let a VCC instance $S$ be defined as a tuple:
+\[
+S = \langle \mathcal{D}, \mathcal{C}, \mathcal{V}, \mathcal{P}, \mathcal{R} \rangle
+\]
+where:
+\begin{itemize}[leftmargin=*]
+  \item $\mathcal{D}$: Set of deliverables with dependency DAG
+  \item $\mathcal{C}$: Acceptance criteria partitioned by severity $\mathcal{C} = \mathcal{C}_M \cup \mathcal{C}_S \cup \mathcal{C}_Y$ (MUST, SHOULD, MAY)
+  \item $\mathcal{V}$: Validator functions $V_c: c \to \{\texttt{PASS}, \texttt{FAIL}, \texttt{SKIP}\}$
+  \item $\mathcal{P}$: Provenance policy requirements
+  \item $\mathcal{R}$: Resource constraints (time, cost, iterations)
+\end{itemize}
+
+\section{Contract-Driven Convergence Algorithm}
+We describe an integration pattern that embeds VCC evaluation into an existing refinement loop, yielding ``run until right'' behavior with bounded budgets, without introducing a parallel runtime.
+
+\subsection{Termination Conditions}
+Let $\mathcal{F}_t \subseteq \mathcal{C}_M$ be the set of failing MUST criteria at iteration $t$.
+The loop must implement the following ordered checks:
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Success}: if $\mathcal{F}_t = \emptyset$, terminate with success.
+  \item \textbf{Budget exhaustion}: if time/cost/iteration ceilings are exceeded, terminate with failure and report $\mathcal{F}_t$.
+  \item \textbf{Stagnation}: if $\mathcal{F}_t$ does not change for $k$ consecutive iterations (configurable), terminate with failure.
+  \item \textbf{Otherwise}: perform another refinement iteration and repeat.
+\end{enumerate}
+
+\subsection{Pseudocode}
+\begin{verbatim}
+state <- init(output0)
+for t in 0..maxPasses:
+  failing <- EvaluateMustCriteria(state.output)
+  if failing == {}:
+     return SUCCESS
+  if BudgetExceeded(state):
+     return FAILURE(reason=budget, failing=failing)
+  if Stagnant(failing, history, k):
+     return FAILURE(reason=stagnation, failing=failing)
+  proposal <- Refine(state.output, failing, context)
+  state.output <- SelectBest(state.output, proposal, failing)
+return FAILURE(reason=max_passes, failing=failing)
+\end{verbatim}
+
+\paragraph{Contract-first stagnation.} Stagnation is assessed primarily over $\mathcal{F}_t$ (contract progress), rather than only numeric quality scores, because correctness is defined by criteria satisfaction.
+
+\section{Implementation Considerations}
+VCC can be integrated as a module that:
+\begin{itemize}[leftmargin=*]
+  \item Runs an \emph{integrity pass} over the contract (cross-reference validation; required validator coverage for MUST criteria).
+  \item Binds acceptance criteria to available validator adapters.
+  \item Emits evidence deliverables (validation reports, hashes) required by provenance policy.
+\end{itemize}
+
+This converts heuristic quality signals into enforceable acceptance criteria (e.g., a \texttt{MUST} criterion requiring score $\geq \tau$ when configured), while preserving extensibility to domain-specific validators.
+
+\paragraph{Reference Implementation.} A production implementation of VCC is available in SDLAF (Software Development Lifecycle Automation Framework) v3.0. The implementation includes the reference JSON Schema, TypeScript adapter interfaces, and universal validators for structure, traceability, consistency, provenance, and AI-judged rubrics.
+
+\subsection{Reference Schema and Adapter Interfaces}
+A reference JSON Schema for VCC v1 was implemented to support machine validation and forward-compatible evolution (Schema ID: \texttt{https://sdlaf.dev/schemas/vcc/v1/schema.json}).
+A TypeScript reference interface set defines adapter boundaries (planning, execution, validation, packaging, delivery) to keep the orchestration kernel domain-agnostic.
+Both the schema and reference interfaces are provided as supplementary material with this manuscript.
+
+\section{Empirical Evaluation: SDLAF Contract-Driven Convergence Regression}
+
+This section reports a focused case study drawn from the SDLAF v3.0.0-alpha test regimen (2026-01-09), where runs were marked \texttt{COMPLETED} despite failing \texttt{MUST} acceptance criteria. The objective is to validate that VCC's semantics eliminate this failure mode by making acceptance satisfaction the sole success condition.
+
+\subsection{System Under Test}
+SDLAF is a production-grade autonomous workflow framework with a large codebase and extensive automated test coverage. The system implements iterative refinement, deliverable validation, and governance controls, but (prior to contract-driven convergence) allowed procedural completion to imply success.
+
+\subsection{Regression Scenario}
+In the reported tests, quality scores fell below configured thresholds, yet the run status was \texttt{COMPLETED}. Table~\ref{tab:sdlaf_regression} summarizes the observed failure.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{lccc}
+\toprule
+Mode & Quality Scores & Threshold & Run Status \\
+\midrule
+API   & 42--46 / 100 & 70 & COMPLETED (invalid) \\
+Local & 41--61 / 100 & 50 & COMPLETED (invalid) \\
+\bottomrule
+\end{tabular}
+\caption{SDLAF v3.0.0-alpha regression motivating contract-driven convergence: procedural completion was incorrectly treated as success.}
+\label{tab:sdlaf_regression}
+\end{table}
+
+\subsection{Expected Post-Fix Behavior}
+Under VCC semantics (Definitions~1--3), a run can only succeed when no \texttt{MUST} acceptance criteria are failing.
+Therefore, the same scenarios must terminate as \texttt{FAILED} with an explicit snapshot of failing \texttt{MUST} criteria and supporting evidence. This behavior converts silent failure into auditable non-compliance.
+
+\subsection{Measurement Targets}
+For future benchmarking beyond this regression case study, the following metrics are proposed:
+(i) \emph{Validity rate} of produced deliverables, (ii) \emph{mean remediation iterations} until $\mathcal{C}_M$ is satisfied or budgets are exhausted,
+(iii) \emph{latency and cost overhead} attributable to validation and remediation, and
+(iv) \emph{failure transparency}, measured as the completeness of evidence records attached to failed criteria.
+
+
+\section{Discussion}
+VCC reframes autonomy from intent-driven execution to outcome-driven verification. It is compatible with heterogeneous domains because validators are adapters: deterministic checks for structure, schemas, and provenance can coexist with AI-judged criteria where appropriate. The approach also clarifies failure semantics: if budgets are exhausted before MUST criteria pass, the system terminates with explicit failure and a machine-readable set of unmet requirements.
+
+\section{Limitations and Future Work}
+VCC does not guarantee convergence. Validator quality and coverage are critical, and AI-judged checks require careful calibration and reproducibility controls. Future work includes (i) learning-informed prioritization of refinements based on failing criteria, (ii) compositional contracts across multi-run programs, and (iii) formal analysis of convergence under different refinement operators.
+
+\section{Ethical Considerations}
+Contract-driven termination improves transparency by preventing silent success, but it may incentivize systems to optimize narrowly for criterion satisfaction. Criterion design should therefore include robustness, safety, and provenance requirements, and should be reviewed in high-stakes deployments. When AI-judged validators are used, the evaluation pipeline should be documented and, where possible, made reproducible (model identifiers, prompts, and decision traces).
+
+\section{Specification Availability}
+The VCC specification is released as an open standard under the MIT license. The following artifacts are provided:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{JSON Schema}: \texttt{vcc-v1.schema.json} for machine validation
+  \item \textbf{TypeScript Interfaces}: Reference adapter boundaries for planner, executor, validator, packager, and deliverer
+  \item \textbf{Universal Validators}: Domain-agnostic validators for structure, traceability, consistency, and provenance
+  \item \textbf{Example Contracts}: Research, software, and hardware domain examples
+\end{itemize}
+The specification, reference implementation, and examples are available at \url{https://github.com/SDLAF/vcc-spec}.
+
+\section{Conclusion}
+We introduced Verifiable Completion Contracts (VCC), a machine-verifiable completion contract for autonomous systems that defines successful termination as satisfaction of MUST acceptance criteria. By embedding contract evaluation into existing refinement loops, VCC enables bounded, outcome-driven convergence without introducing a parallel runtime. VCC is released as an open specification to encourage adoption and community contribution. As autonomous systems are deployed in more consequential settings, explicit completion contracts and verifiable termination semantics become foundational rather than optional.
+
+\bibliographystyle{unsrt}
+\bibliography{references}
+
+\end{document}

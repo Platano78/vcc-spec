@@ -1,0 +1,164 @@
+vccVersion: "sdlaf.vcc/v1"
+id: "outspec-software-001"
+title: "Repo change delivered as PR with quality gates"
+summary: "Implement a scoped change in a repo with tests, review gates, and provenance."
+
+intent:
+  problemStatement: "Deliver a code change that satisfies defined requirements and passes quality gates."
+  targetAudience: ["maintainers", "end users"]
+  inScope:
+    - "Implement required behavior"
+    - "Add/update tests"
+    - "Update docs/release notes"
+  outOfScope:
+    - "Large refactors unrelated to the requirement"
+    - "Breaking API changes unless explicitly required"
+  constraints:
+    styleGuides: ["repo style guide if present", "keep changes minimal"]
+  successDefinition: "PR builds cleanly, tests pass, change matches requirements, and review gates approve."
+
+artifacts:
+  - artifactId: "A1"
+    kind: "specification"
+    subtype: "requirements"
+    description: "Change request with acceptance criteria."
+    formats:
+      - mediaType: "text/markdown"
+        uri: "sdlaf-exports/deliverables/requirements.md"
+    required: true
+    dependsOn: []
+    owners: ["role:ProductLead"]
+    qualityLevel: "production"
+
+  - artifactId: "A2"
+    kind: "implementation"
+    subtype: "repo-branch"
+    description: "Working branch containing code + tests."
+    formats:
+      - mediaType: "application/vnd.git"
+        uri: "worktree://sdlaf-run/<runId>/branch/<branchName>"
+    required: true
+    dependsOn: ["A1"]
+    owners: ["role:Developer"]
+    qualityLevel: "production"
+
+  - artifactId: "A3"
+    kind: "evidence"
+    subtype: "test-results"
+    description: "Test run outputs (and lint/build logs if applicable)."
+    formats:
+      - mediaType: "text/plain"
+        uri: "sdlaf-exports/evidence/test_results.txt"
+    required: true
+    dependsOn: ["A2"]
+    owners: ["role:CIEngineer"]
+    qualityLevel: "production"
+
+  - artifactId: "A4"
+    kind: "documentation"
+    subtype: "release-notes"
+    description: "User-facing explanation of the change."
+    formats:
+      - mediaType: "text/markdown"
+        uri: "sdlaf-exports/deliverables/release_notes.md"
+    required: true
+    dependsOn: ["A2"]
+    owners: ["role:Writer"]
+    qualityLevel: "production"
+
+  - artifactId: "A5"
+    kind: "delivery"
+    subtype: "pull-request"
+    description: "PR metadata and link (or local PR bundle if offline)."
+    formats:
+      - mediaType: "application/json"
+        uri: "sdlaf-exports/deliverables/pr_metadata.json"
+    required: true
+    dependsOn: ["A2", "A3", "A4"]
+    owners: ["role:ReleaseManager"]
+    qualityLevel: "production"
+
+acceptance:
+  - acId: "AC-SW-1"
+    targetArtifacts: ["A1"]
+    type: "structure"
+    severity: "must"
+    rule:
+      requiredSections: ["Scope", "Non-goals", "Acceptance Criteria", "Edge Cases", "Rollout/Backout"]
+    evidence: { required: true, evidenceType: "auto", producedArtifact: "E-AC-SW-1" }
+
+  - acId: "AC-SW-2"
+    targetArtifacts: ["A2"]
+    type: "consistency"
+    severity: "must"
+    rule:
+      description: "Implementation satisfies each acceptance criterion in A1 (trace matrix required)."
+      requireTraceMatrix: true
+    evidence: { required: true, evidenceType: "auto", producedArtifact: "E-AC-SW-2" }
+
+  - acId: "AC-SW-3"
+    targetArtifacts: ["A3"]
+    type: "execution"
+    severity: "must"
+    rule:
+      adapter: "software.tests.run"
+      passFailFromExitCode: true
+    evidence: { required: true, evidenceType: "auto", producedArtifact: "A3" }
+
+  - acId: "AC-SW-SEC-1"
+    targetArtifacts: ["A2"]
+    type: "security"
+    severity: "should"
+    rule:
+      description: "Run baseline security verification checklist (supports stable IDs)."
+      checklist:
+        - "v5.0.0-1.2.5"
+    evidence: { required: true, evidenceType: "auto", producedArtifact: "E-AC-SW-SEC-1" }
+
+gates:
+  - gateId: "GATE-REVIEW"
+    when: "before_final"
+    requiredApprovals:
+      - type: "ai"
+        role: "role:Reviewer"
+        rubricId: "RUBRIC-CODE-QUALITY-v1"
+        passThreshold: 4
+
+  - gateId: "GATE-PROVENANCE"
+    when: "before_final"
+    requiredApprovals:
+      - type: "auto"
+        rule: { provenancePolicyRef: "PROV-POLICY-v1" }
+
+rubrics:
+  - rubricId: "RUBRIC-CODE-QUALITY-v1"
+    scale: [1, 2, 3, 4, 5]
+    anchors:
+      "1": "Fails tests or violates requirements"
+      "3": "Works but lacks polish/coverage"
+      "5": "Clean, well-tested, minimal, maintainable"
+    passThreshold: 4
+
+packaging:
+  - packageId: "P-SW-1"
+    inputs: ["A1", "A4", "A5"]
+    method: "bundle"
+    format: "zip"
+    uri: "sdlaf-exports/package/pr_bundle.zip"
+    manifestRequired: true
+
+delivery:
+  - deliveryId: "D-SW-1"
+    channel: "filesystem"
+    target: "local"
+    uri: "sdlaf-exports/package/pr_bundle.zip"
+    notify: ["role:Owner"]
+
+provenancePolicy:
+  policyId: "PROV-POLICY-v1"
+  require: ["inputs.enumerated", "tooling.recorded", "agentActions.logged", "artifactHashes.recorded"]
+  strength: "L2-like"
+
+resourceConstraints:
+  maxIterations: 10
+  stagnationWindow: 3

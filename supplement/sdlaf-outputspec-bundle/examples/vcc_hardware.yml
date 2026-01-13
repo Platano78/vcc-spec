@@ -1,0 +1,176 @@
+vccVersion: "sdlaf.vcc/v1"
+id: "outspec-hardware-001"
+title: "Prototype-ready hardware package (BOM + assembly + test)"
+summary: "Produce a manufacturing packet that a third party can build and validate."
+
+intent:
+  problemStatement: "Create a prototype-ready package for a hardware concept (electronics/mechanical)."
+  targetAudience: ["prototype shop", "engineering", "QA/test"]
+  inScope:
+    - "Bill of materials with sourcing assumptions"
+    - "Assembly instructions"
+    - "Verification & validation test plan"
+    - "Risk register and open issues"
+  outOfScope:
+    - "Ordering parts / physical manufacturing"
+    - "Regulatory certification"
+  constraints:
+    styleGuides: ["clear steps", "tables where useful"]
+  successDefinition: "A third party can build a prototype and run tests with no hidden knowledge."
+
+artifacts:
+  - artifactId: "A1"
+    kind: "specification"
+    subtype: "requirements"
+    description: "Functional requirements and environmental constraints."
+    formats:
+      - mediaType: "text/markdown"
+        uri: "sdlaf-exports/deliverables/requirements.md"
+    required: true
+    dependsOn: []
+    owners: ["role:SystemEngineer"]
+    qualityLevel: "production"
+
+  - artifactId: "A2"
+    kind: "design"
+    subtype: "architecture"
+    description: "High-level architecture: subsystems, interfaces, assumptions."
+    formats:
+      - mediaType: "text/markdown"
+        uri: "sdlaf-exports/deliverables/architecture.md"
+    required: true
+    dependsOn: ["A1"]
+    owners: ["role:DesignEngineer"]
+    qualityLevel: "production"
+
+  - artifactId: "A3"
+    kind: "dataset"
+    subtype: "bom"
+    description: "BOM with quantities, alternates, sourcing notes, and risk flags."
+    formats:
+      - mediaType: "text/csv"
+        uri: "sdlaf-exports/deliverables/bom.csv"
+      - mediaType: "application/json"
+        uri: "sdlaf-exports/deliverables/bom.json"
+    required: true
+    dependsOn: ["A2"]
+    owners: ["role:ManufacturingEngineer"]
+    qualityLevel: "production"
+    metadata:
+      schemaRef: "schemas/bom.schema.json"
+
+  - artifactId: "A4"
+    kind: "procedure"
+    subtype: "assembly-instructions"
+    description: "Step-by-step assembly, tools required, hazards, and checkpoints."
+    formats:
+      - mediaType: "text/markdown"
+        uri: "sdlaf-exports/deliverables/assembly.md"
+    required: true
+    dependsOn: ["A2", "A3"]
+    owners: ["role:ManufacturingEngineer"]
+    qualityLevel: "production"
+
+  - artifactId: "A5"
+    kind: "plan"
+    subtype: "test-plan"
+    description: "Verification plan: tests, equipment, procedures, pass/fail criteria."
+    formats:
+      - mediaType: "text/markdown"
+        uri: "sdlaf-exports/deliverables/test_plan.md"
+    required: true
+    dependsOn: ["A1", "A2"]
+    owners: ["role:TestEngineer"]
+    qualityLevel: "production"
+
+  - artifactId: "A6"
+    kind: "register"
+    subtype: "risk-register"
+    description: "Risks, mitigations, severity, owners, and open decisions."
+    formats:
+      - mediaType: "text/markdown"
+        uri: "sdlaf-exports/deliverables/risk_register.md"
+    required: true
+    dependsOn: ["A1", "A2", "A3"]
+    owners: ["role:ProgramManager"]
+    qualityLevel: "production"
+
+acceptance:
+  - acId: "AC-HW-1"
+    targetArtifacts: ["A3"]
+    type: "schema"
+    severity: "must"
+    rule: { jsonSchema: "schemas/bom.schema.json" }
+    evidence: { required: true, evidenceType: "auto", producedArtifact: "E-AC-HW-1" }
+
+  - acId: "AC-HW-2"
+    targetArtifacts: ["A5"]
+    type: "structure"
+    severity: "must"
+    rule:
+      requiredSections: ["Test Matrix", "Equipment", "Procedure", "Pass/Fail", "Data Recording", "Re-test Policy"]
+    evidence: { required: true, evidenceType: "auto", producedArtifact: "E-AC-HW-2" }
+
+  - acId: "AC-HW-3"
+    targetArtifacts: ["A4"]
+    type: "rubric"
+    severity: "must"
+    rule: { rubricRef: "RUBRIC-ASSEMBLY-CLARITY-v1", passThreshold: 4 }
+    evidence: { required: true, evidenceType: "ai-judged", producedArtifact: "E-AC-HW-3" }
+
+  - acId: "AC-HW-4"
+    targetArtifacts: ["A1", "A2", "A3", "A5"]
+    type: "consistency"
+    severity: "must"
+    rule:
+      description: "All requirements are mapped to tests; BOM aligns with architecture (trace matrix required)."
+      requireTraceMatrix: true
+    evidence: { required: true, evidenceType: "auto", producedArtifact: "E-AC-HW-4" }
+
+rubrics:
+  - rubricId: "RUBRIC-ASSEMBLY-CLARITY-v1"
+    scale: [1, 2, 3, 4, 5]
+    anchors:
+      "1": "Ambiguous steps, missing tools/checkpoints"
+      "3": "Mostly usable, some gaps"
+      "5": "Buildable by third party with minimal questions"
+    passThreshold: 4
+
+gates:
+  - gateId: "GATE-TECH-REVIEW"
+    when: "before_final"
+    requiredApprovals:
+      - type: "ai"
+        role: "role:SystemEngineer"
+        rubricId: "RUBRIC-ASSEMBLY-CLARITY-v1"
+        passThreshold: 4
+
+  - gateId: "GATE-PROVENANCE"
+    when: "before_final"
+    requiredApprovals:
+      - type: "auto"
+        rule: { provenancePolicyRef: "PROV-POLICY-v1" }
+
+packaging:
+  - packageId: "P-HW-1"
+    inputs: ["A1", "A2", "A3", "A4", "A5", "A6"]
+    method: "bundle"
+    format: "zip"
+    uri: "sdlaf-exports/package/hardware_packet.zip"
+    manifestRequired: true
+
+delivery:
+  - deliveryId: "D-HW-1"
+    channel: "filesystem"
+    target: "local"
+    uri: "sdlaf-exports/package/hardware_packet.zip"
+    notify: ["role:Owner"]
+
+provenancePolicy:
+  policyId: "PROV-POLICY-v1"
+  require: ["inputs.enumerated", "tooling.recorded", "agentActions.logged", "artifactHashes.recorded"]
+  strength: "L1-like"
+
+resourceConstraints:
+  maxIterations: 10
+  stagnationWindow: 3
