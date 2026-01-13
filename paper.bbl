@@ -1,0 +1,125 @@
+\begin{thebibliography}{10}
+
+\bibitem{langgraph_recursion_limit_js}
+{GRAPH\_RECURSION\_LIMIT} (javascript) --- langgraph documentation.
+\newblock Online documentation, 2025.
+\newblock RecursionLimit configuration and troubleshooting.
+
+\bibitem{langgraph_recursion_limit_py}
+{GRAPH\_RECURSION\_LIMIT} (python) --- langgraph documentation.
+\newblock Online documentation, 2025.
+\newblock Recursion limit raises GraphRecursionError after maximum steps.
+
+\bibitem{langgraph_graph_api_py}
+Use the graph api --- langgraph documentation.
+\newblock Online documentation, 2025.
+\newblock Loop termination conditions and recursion limits.
+
+\bibitem{meyer_dbc_ieee}
+Bertrand Meyer.
+\newblock Applying ``design by contract''.
+\newblock {\em Computer}, 25(10):40--51, October 1992.
+\newblock Metadata listed in Meyer's publication list.
+
+\bibitem{lamport_specifying_systems_book}
+Leslie Lamport.
+\newblock {\em Specifying Systems: The {TLA+} Language and Tools for Hardware
+  and Software Engineers}.
+\newblock Addison-Wesley, June 2002.
+
+\bibitem{lamport_tla_sigops}
+Leslie Lamport, John Matthews, Mark Tuttle, and Yuan Yu.
+\newblock Specifying and verifying systems with {TLA+}.
+\newblock In {\em Proceedings of the Tenth {ACM} {SIGOPS} European Workshop},
+  September 2002.
+
+\bibitem{jackson_alloy_tosem}
+Daniel Jackson.
+\newblock Alloy: A lightweight object modelling notation.
+\newblock {\em ACM Transactions on Software Engineering and Methodology
+  (TOSEM)}, 11(2):256--290, April 2002.
+
+\bibitem{humble_farley_cd}
+Jez Humble and David Farley.
+\newblock {\em Continuous Delivery: Reliable Software Releases through Build,
+  Test, and Deployment Automation}.
+\newblock Addison-Wesley Professional, 2010.
+
+\bibitem{gotel_finkelstein_traceability}
+Orlena Gotel and Anthony Finkelstein.
+\newblock Modelling the contribution structure underlying requirements.
+\newblock In {\em International Workshop on Requirements Engineering:
+  Foundations for Software Quality}, 1994.
+
+\bibitem{gotel_requirements_traceable_pdf}
+Orlena Gotel.
+\newblock Making requirements elicitation traceable.
+\newblock PDF, 1994.
+
+\bibitem{jsonschemabench_arxiv}
+Saibo Geng, Hudson Cooper, Micha{\l} Moskal, Samuel Jenkins, Julian Berman,
+  Nathan Ranchin, Robert West, Eric Horvitz, and Harsha Nori.
+\newblock Jsonschemabench: A rigorous benchmark of structured outputs for
+  language models.
+\newblock {\em arXiv preprint arXiv:2501.10868}, 2025.
+
+\bibitem{xgrammar_arxiv}
+Yixin Dong, Charlie~F. Ruan, Yaxing Cai, Ruihang Lai, Ziyi Xu, Yilong Zhao, and
+  Tianqi Chen.
+\newblock Xgrammar: Flexible and efficient structured generation engine for
+  large language models.
+\newblock {\em arXiv preprint arXiv:2411.15100}, 2024.
+
+\bibitem{outlines_docs}
+{Outlines Contributors}.
+\newblock Outlines documentation.
+\newblock Project Documentation, 2025.
+
+\bibitem{guidance_msr}
+{Microsoft Research}.
+\newblock Guidance: Control lm output.
+\newblock Project Page, 2024.
+
+\bibitem{llguidance_go_brrr}
+{guidance-ai}.
+\newblock Llguidance: Making structured outputs go brrr.
+\newblock Project Documentation, 2025.
+
+\bibitem{llguidance_repo}
+{guidance-ai}.
+\newblock Llguidance: Super-fast structured outputs.
+\newblock GitHub Repository, 2025.
+
+\bibitem{lmql_paper}
+Luca Beurer-Kellner, Marc Fischer, and Martin Vechev.
+\newblock Prompting is programming: A query language for large language models.
+\newblock {\em arXiv preprint arXiv:2212.06094}, 2022.
+
+\bibitem{openai_structured_outputs_blog}
+{OpenAI}.
+\newblock Introducing structured outputs in the api.
+\newblock OpenAI Blog, 2024.
+
+\bibitem{openai_structured_outputs_docs}
+{OpenAI}.
+\newblock Structured model outputs: Structured outputs guide.
+\newblock OpenAI Platform Documentation, 2024.
+
+\bibitem{anthropic_advanced_tool_use}
+{Anthropic}.
+\newblock Introducing advanced tool use on the claude developer platform.
+\newblock Anthropic Engineering, 2024.
+
+\bibitem{guardrails_position_paper}
+Yi~Dong, Ronghui Mu, Gaojie Jin, Yi~Qi, Jinwei Hu, Xingyu Zhao, Jie Meng,
+  Wenjie Ruan, and Xiaowei Huang.
+\newblock Building guardrails for large language models.
+\newblock {\em arXiv preprint arXiv:2402.01822}, 2024.
+
+\bibitem{jsonformer_repo}
+{1rgs}.
+\newblock Jsonformer: A bulletproof way to generate structured json from
+  language models.
+\newblock GitHub Repository, 2023.
+
+\end{thebibliography}
