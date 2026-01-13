@@ -1,0 +1,668 @@
+2026-01-12 20:44:07 [[34mdebug[39m]: [LocalServiceDetector] Initialized {"discoveryEnabled":true,"cacheTTL":300,"portPriority":[8081,1234,11434,8000,8001,5000,5001,8080]}
+2026-01-12 20:44:07 [[34mdebug[39m]: [OrchestratorRegistry] Registered provider: claude-code {"name":"Claude Code","priority":1}
+2026-01-12 20:44:07 [[34mdebug[39m]: [OrchestratorRegistry] Registered provider: gemini-cli {"name":"Gemini CLI","priority":2}
+2026-01-12 20:44:07 [[34mdebug[39m]: [OrchestratorRegistry] Registered provider: ollama {"name":"Ollama","priority":3}
+[dotenv@17.2.3] injecting env (26) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+  ____    ____    _          _      _____ 
+ / ___|  |  _ \  | |        / \    |  ___|
+ \___ \  | | | | | |       / _ \   | |_   
+  ___) | | |_| | | |___   / ___ \  |  _|  
+ |____/  |____/  |_____| /_/   \_\ |_|    
+                                          
+
+🚀 SDLAF Multi-Mode Orchestration
+============================================================
+
+📍 Mode: autonomous-local
+   Fully autonomous with local LLM - $0 cost, quality depends on model
+   Cost: none
+
+🔧 Creating execution context...
+2026-01-12 20:44:07 [[32minfo[39m]: [ExecutionContextFactory] Creating context {"mode":"autonomous-local"}
+2026-01-12 20:44:07 [[32minfo[39m]: [LocalServiceDetector] Using LOCAL_LLM_ENDPOINT override {"endpoint":"http://localhost:8081"}
+2026-01-12 20:44:07 [[34mdebug[39m]: [LocalServiceDetector] Found loaded model in router {"model":"agents-nemotron"}
+2026-01-12 20:44:07 [[34mdebug[39m]: [LocalServiceDetector] Valid LLM endpoint found {"baseUrl":"http://localhost:8081","service":"llamacpp-router","modelCount":14}
+2026-01-12 20:44:07 [[32minfo[39m]: [ExecutionContextFactory] Local context created {"model":"agents-nemotron","source":"detected","service":"llamacpp-router","strictLocalMode":true}
+   ✓ Mode: autonomous-local
+   ✓ Model: agents-nemotron (detected)
+   ✓ Service: llamacpp-router
+   ⚠️  Strict local mode: hardcoded model names will be ignored
+
+⚙️  Validating requirements...
+2026-01-12 20:44:07 [[32minfo[39m]: [LocalServiceDetector] Using LOCAL_LLM_ENDPOINT override {"endpoint":"http://localhost:8081"}
+2026-01-12 20:44:07 [[34mdebug[39m]: [LocalServiceDetector] Found loaded model in router {"model":"agents-nemotron"}
+2026-01-12 20:44:07 [[34mdebug[39m]: [LocalServiceDetector] Valid LLM endpoint found {"baseUrl":"http://localhost:8081","service":"llamacpp-router","modelCount":14}
+2026-01-12 20:44:07 [[32minfo[39m]: [ExecutionEngineFactory] Local LLM detected {"service":"llamacpp-router","url":"http://localhost:8081/v1"}
+
+📦 Initializing components...
+PRAGMA journal_mode = WAL
+SELECT name FROM sqlite_master WHERE type='table' AND name='migrations'
+SELECT COUNT(*) as count FROM migrations
+[Database] Running migrations: 2/28 already applied
+[Database] Applying migration 3/28...
+CREATE TABLE IF NOT EXISTS agents (
+        id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        config TEXT,
+        status TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (project_id) REFERENCES projects(id)
+      )
+[Database] ✓ Migration 3 applied successfully
+[Database] Applying migration 4/28...
+CREATE TABLE IF NOT EXISTS executions (
+        id TEXT PRIMARY KEY,
+        agent_id TEXT NOT NULL,
+        status TEXT NOT NULL,
+        input TEXT,
+        output TEXT,
+        error TEXT,
+        started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        completed_at DATETIME,
+        FOREIGN KEY (agent_id) REFERENCES agents(id)
+      )
+[Database] ✓ Migration 4 applied successfully
+[Database] Applying migration 5/28...
+CREATE TABLE IF NOT EXISTS audit_logs (
+        id TEXT PRIMARY KEY,
+        entity_type TEXT NOT NULL,
+        entity_id TEXT NOT NULL,
+        action TEXT NOT NULL,
+        user_id TEXT,
+        changes TEXT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+[Database] ✓ Migration 5 applied successfully
+[Database] Applying migration 6/28...
+CREATE TABLE IF NOT EXISTS decisions (
+        id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        context TEXT,
+        decision TEXT NOT NULL,
+        impact TEXT,
+        priority TEXT,
+        tags TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (project_id) REFERENCES projects(id)
+      )
+[Database] ✓ Migration 6 applied successfully
+[Database] Applying migration 7/28...
+CREATE TABLE IF NOT EXISTS mcp_tool_usage (
+        id TEXT PRIMARY KEY,
+        tool_name TEXT NOT NULL,
+        backend TEXT NOT NULL,
+        input TEXT,
+        output TEXT,
+        duration_ms INTEGER,
+        success BOOLEAN NOT NULL,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+[Database] ✓ Migration 7 applied successfully
+[Database] Applying migration 8/28...
+[Database] ℹ Migration 8 skipped (column already exists)
+[Database] Applying migration 9/28...
+[Database] ℹ Migration 9 skipped (column already exists)
+[Database] Applying migration 10/28...
+CREATE TABLE IF NOT EXISTS agent_backend_metrics (
+        id TEXT PRIMARY KEY,
+        agent_id TEXT NOT NULL,
+        backend_type TEXT NOT NULL,
+        execution_count INTEGER DEFAULT 0,
+        avg_execution_time_ms REAL,
+        total_cost REAL DEFAULT 0,
+        deterministic_flag BOOLEAN DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (agent_id) REFERENCES agents(id)
+      )
+[Database] ✓ Migration 10 applied successfully
+[Database] Applying migration 11/28...
+CREATE INDEX IF NOT EXISTS idx_backend_metrics_agent ON agent_backend_metrics(agent_id)
+[Database] ✓ Migration 11 applied successfully
+[Database] Applying migration 12/28...
+CREATE INDEX IF NOT EXISTS idx_backend_metrics_type ON agent_backend_metrics(backend_type)
+[Database] ✓ Migration 12 applied successfully
+[Database] Applying migration 13/28...
+CREATE TRIGGER IF NOT EXISTS update_projects_updated_at
+       AFTER UPDATE ON projects
+       BEGIN
+         UPDATE projects SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+       END
+[Database] ✓ Migration 13 applied successfully
+[Database] Applying migration 14/28...
+CREATE TRIGGER IF NOT EXISTS update_agents_updated_at
+       AFTER UPDATE ON agents
+       BEGIN
+         UPDATE agents SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+       END
+[Database] ✓ Migration 14 applied successfully
+[Database] Applying migration 15/28...
+CREATE TABLE IF NOT EXISTS delegation_agents (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        capabilities TEXT,
+        metadata TEXT,
+        created_at INTEGER,
+        updated_at INTEGER
+      )
+[Database] ✓ Migration 15 applied successfully
+[Database] Applying migration 16/28...
+CREATE TABLE IF NOT EXISTS delegation_tasks (
+        id TEXT PRIMARY KEY,
+        agent_id TEXT,
+        workflow_id TEXT,
+        status TEXT,
+        description TEXT,
+        complexity INTEGER,
+        dependencies TEXT,
+        result TEXT,
+        created_at INTEGER,
+        completed_at INTEGER,
+        FOREIGN KEY (agent_id) REFERENCES delegation_agents(id)
+      )
+[Database] ✓ Migration 16 applied successfully
+[Database] Applying migration 17/28...
+CREATE INDEX IF NOT EXISTS idx_tasks_agent ON delegation_tasks(agent_id)
+[Database] ✓ Migration 17 applied successfully
+[Database] Applying migration 18/28...
+CREATE INDEX IF NOT EXISTS idx_tasks_status ON delegation_tasks(status)
+[Database] ✓ Migration 18 applied successfully
+[Database] Applying migration 19/28...
+CREATE INDEX IF NOT EXISTS idx_tasks_workflow ON delegation_tasks(workflow_id)
+[Database] ✓ Migration 19 applied successfully
+[Database] Applying migration 20/28...
+CREATE TABLE IF NOT EXISTS workflow_definitions (
+        id TEXT PRIMARY KEY,
+        definition TEXT NOT NULL,
+        created_at INTEGER
+      )
+[Database] ✓ Migration 20 applied successfully
+[Database] Applying migration 21/28...
+CREATE TABLE IF NOT EXISTS workflow_executions (
+        id TEXT PRIMARY KEY,
+        workflow_id TEXT NOT NULL,
+        status TEXT,
+        input TEXT,
+        output TEXT,
+        started_at INTEGER,
+        completed_at INTEGER,
+        agent_id TEXT,
+        FOREIGN KEY (workflow_id) REFERENCES workflow_definitions(id),
+        FOREIGN KEY (agent_id) REFERENCES delegation_agents(id)
+      )
+[Database] ✓ Migration 21 applied successfully
+[Database] Applying migration 22/28...
+CREATE TABLE IF NOT EXISTS domain_memory (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id TEXT NOT NULL UNIQUE,
+        project_id TEXT NOT NULL,
+        features TEXT NOT NULL,
+        spawn_history TEXT NOT NULL,
+        applied_patterns TEXT NOT NULL,
+        state TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+[Database] ✓ Migration 22 applied successfully
+[Database] Applying migration 23/28...
+CREATE INDEX IF NOT EXISTS idx_domain_memory_project ON domain_memory(project_id)
+[Database] ✓ Migration 23 applied successfully
+[Database] Applying migration 24/28...
+CREATE INDEX IF NOT EXISTS idx_domain_memory_session ON domain_memory(session_id)
+[Database] ✓ Migration 24 applied successfully
+[Database] Applying migration 25/28...
+CREATE TABLE IF NOT EXISTS agent_context_store (
+        id TEXT PRIMARY KEY,
+        workflow_id TEXT NOT NULL,
+        task_id TEXT,
+        agent_id TEXT,
+        context_type TEXT NOT NULL,
+        context_key TEXT NOT NULL,
+        data TEXT NOT NULL,
+        estimated_tokens INTEGER DEFAULT 0,
+        created_at INTEGER DEFAULT (strftime('%s', 'now')),
+        expires_at INTEGER,
+        UNIQUE(workflow_id, context_type, context_key)
+      )
+[Database] ✓ Migration 25 applied successfully
+[Database] Applying migration 26/28...
+CREATE INDEX IF NOT EXISTS idx_context_store_workflow ON agent_context_store(workflow_id)
+[Database] ✓ Migration 26 applied successfully
+[Database] Applying migration 27/28...
+CREATE INDEX IF NOT EXISTS idx_context_store_type ON agent_context_store(context_type)
+[Database] ✓ Migration 27 applied successfully
+[Database] Applying migration 28/28...
+CREATE INDEX IF NOT EXISTS idx_context_store_expires ON agent_context_store(expires_at)
+[Database] ✓ Migration 28 applied successfully
+INSERT OR REPLACE INTO migrations (id, name) VALUES (28.0, 'initial_migration')
+[Database] ✓ Recorded migration completion: 28 migrations applied
+2026-01-12 20:44:07 [[32minfo[39m]: [AIManager] Initialized {"provider":"Local LLM","defaultProvider":"local"}
+2026-01-12 20:44:07 [[32minfo[39m]: [AIManager] Execution context set {"mode":"autonomous-local","model":"agents-nemotron","strictLocalMode":true}
+
+🔧 Creating execution engine...
+2026-01-12 20:44:07 [[32minfo[39m]: [ExecutionEngineFactory] Creating engine {"mode":"autonomous-local"}
+2026-01-12 20:44:07 [[32minfo[39m]: [LocalServiceDetector] Using LOCAL_LLM_ENDPOINT override {"endpoint":"http://localhost:8081"}
+2026-01-12 20:44:07 [[34mdebug[39m]: [LocalServiceDetector] Found loaded model in router {"model":"agents-nemotron"}
+2026-01-12 20:44:07 [[34mdebug[39m]: [LocalServiceDetector] Valid LLM endpoint found {"baseUrl":"http://localhost:8081","service":"llamacpp-router","modelCount":14}
+2026-01-12 20:44:07 [[32minfo[39m]: [ExecutionEngineFactory] Local LLM detected {"service":"llamacpp-router","url":"http://localhost:8081/v1"}
+2026-01-12 20:44:07 [[33mwarn[39m]: [LocalExecutionEngine] Cloud fallback disabled - no API key {"error":{}}
+2026-01-12 20:44:07 [[34mdebug[39m]: [QualityBudgetIntegration] Resolved threshold: 60 (mode=autonomous-local, model=agents-nemotron, provider=none, class=unknown)
+2026-01-12 20:44:07 [[32minfo[39m]: [LocalExecutionEngine] Initialized {"model":"agents-nemotron","fallbackEnabled":false,"patternLearningEnabled":true,"qualityValidation":true,"budgetValidation":true,"agentToolsEnabled":false}
+2026-01-12 20:44:07 [[32minfo[39m]: [ExecutionEngineFactory] Engine created {"mode":"autonomous-local"}
+   ✓ autonomous-local engine ready
+
+🧠 v3.0 Compiled Pipeline: Generating team...
+   Analyzing codebase: .
+2026-01-12 20:44:07 [[32minfo[39m]: [ProjectAnalysis] Starting analysis: .
+2026-01-12 20:44:07 [[32minfo[39m]: Scanning project: .
+2026-01-12 20:44:07 [[32minfo[39m]: Found 1151 files, 179 directories
+2026-01-12 20:44:07 [[32minfo[39m]: [ProjectAnalysis] Found 1151 files
+2026-01-12 20:44:07 [[32minfo[39m]: Detecting technology stack...
+2026-01-12 20:44:07 [[32minfo[39m]: Detected stack: Flask (confidence: 0.85)
+2026-01-12 20:44:07 [[32minfo[39m]: [ProjectAnalysis] Stack: Flask (85%)
+2026-01-12 20:44:07 [[32minfo[39m]: Parsing project documentation...
+2026-01-12 20:44:07 [[32minfo[39m]: Parsed project context: sdlaf
+2026-01-12 20:44:07 [[32minfo[39m]: [ProjectAnalysis] Context: sdlaf
+2026-01-12 20:44:07 [[32minfo[39m]: [ProjectAnalysis] Complete in 131ms: backend-development, medium
+   ✓ Stack: Flask 
+   ✓ Languages: TypeScript, JavaScript, Python
+   ✓ Domain: backend-development
+   ✓ Complexity: medium
+   ✓ Files: 1151
+   Compiling agent team through v3.0 pipeline...
+2026-01-12 20:44:07 [[32minfo[39m]: [SDLAF] Initializing {"projectId":"proj-1768268647332","mode":"mcp-tool","lightweight":true}
+2026-01-12 20:44:07 [[32minfo[39m]: [AIManager] Initialized {"provider":"Local LLM","defaultProvider":"local"}
+2026-01-12 20:44:07 [[32minfo[39m]: [HybridRouter] Initialized {"localAvailable":true,"claudeAvailable":true,"mode":"hybrid","configVersion":"2.0"}
+2026-01-12 20:44:07 [[32minfo[39m]: [SDLAF] Skipping MCP server registration in lightweight mode
+2026-01-12 20:44:07 [[32minfo[39m]: [SDLAF] Initialization successful
+2026-01-12 20:44:07 [[32minfo[39m]: [SDLAF] Connecting database
+PRAGMA journal_mode = WAL
+2026-01-12 20:44:07 [[32minfo[39m]: [SDLAF] Skipping migrations in lightweight mode
+2026-01-12 20:44:07 [[34mdebug[39m]: [ContextManager] Initialized context for project: proj-1768268647332
+2026-01-12 20:44:07 [[32minfo[39m]: [SDLAF] TeamOrchestrator initialized (v3.0 pipeline ready)
+2026-01-12 20:44:07 [[32minfo[39m]: [SDLAF] System initialized and ready {"lightweight":true}
+2026-01-12 20:44:07 [[32minfo[39m]: [SDLAF] Generating agent team (v3.0 compiled pipeline) {"projectName":"vcc-e2e-test","domain":"backend-development","industry":"software","inputFormat":"TeamGenerationInput"}
+2026-01-12 20:44:07 [[32minfo[39m]: [TeamOrchestrator] Starting team generation {"projectName":"vcc-e2e-test","domain":"backend-development","industry":"software"}
+2026-01-12 20:44:07 [[32minfo[39m]: [RoleResearch] Recommending roles for project {"projectName":"vcc-e2e-test","domain":"backend-development","industry":"software"}
+2026-01-12 20:44:07 [[34mdebug[39m]: [AIManager] Sending request {"provider":"Local LLM","promptLength":1168,"options":{"temperature":0.2,"maxTokens":3000}}
+2026-01-12 20:44:07 [[32minfo[39m]: [LocalAIProvider] Initializing local AI provider...
+2026-01-12 20:44:07 [[32minfo[39m]: [LocalLLMProvider] Starting endpoint auto-detection...
+2026-01-12 20:44:07 [[32minfo[39m]: [LocalServiceDetector] Using LOCAL_LLM_ENDPOINT override {"endpoint":"http://localhost:8081"}
+2026-01-12 20:44:07 [[34mdebug[39m]: [LocalServiceDetector] Found loaded model in router {"model":"agents-nemotron"}
+2026-01-12 20:44:07 [[34mdebug[39m]: [LocalServiceDetector] Valid LLM endpoint found {"baseUrl":"http://localhost:8081","service":"llamacpp-router","modelCount":14}
+2026-01-12 20:44:07 [[32minfo[39m]: [LocalLLMProvider] Endpoint detected {"service":"llamacpp-router","url":"http://localhost:8081/v1","model":"agents-nemotron"}
+2026-01-12 20:44:07 [[32minfo[39m]: [LocalAIProvider] Initialized successfully {"endpoint":"http://localhost:8081/v1","model":"agents-nemotron"}
+2026-01-12 20:44:07 [[34mdebug[39m]: [LocalAIProvider] Generating response {"promptLength":1168,"temperature":0.2,"maxTokens":3000}
+2026-01-12 20:44:07 [[34mdebug[39m]: [LocalLLMProvider] Generating response {"model":"agents-nemotron","temperature":0.2,"maxTokens":3000,"promptLength":1168}
+2026-01-12 20:44:59 [[34mdebug[39m]: [LocalLLMProvider] Response generated {"model":"agents-nemotron","tokensUsed":3297,"duration":51593,"contentLength":0}
+2026-01-12 20:44:59 [[34mdebug[39m]: [LocalAIProvider] Response generated {"model":"agents-nemotron","tokensUsed":3297,"contentLength":0}
+2026-01-12 20:44:59 [[32minfo[39m]: [AIManager] Request completed {"provider":"Local LLM (llamacpp-router)","duration":51597,"responseLength":0}
+2026-01-12 20:44:59 [[31merror[39m]: [RoleResearch] Failed to get recommendations {"error":"Unexpected end of JSON input","projectName":"vcc-e2e-test"}
+2026-01-12 20:44:59 [[32minfo[39m]: [RoleNormalizer] Starting normalization {"inputCount":2,"maxTeamSize":8}
+2026-01-12 20:44:59 [[32minfo[39m]: [RoleNormalizer] Normalization complete {"inputCount":2,"outputCount":2,"mergedCount":0,"droppedCount":0,"durationMs":0}
+2026-01-12 20:44:59 [[32minfo[39m]: [TeamOrchestrator] Normalization complete {"inputCount":2,"outputCount":2,"mergedCount":0}
+2026-01-12 20:44:59 [[32minfo[39m]: [RoleResearch] Researching persona {"roleName":"Software Engineer","canonicalName":"software_engineer","category":"technical"}
+2026-01-12 20:44:59 [[34mdebug[39m]: [AIManager] Sending request {"provider":"Local LLM (llamacpp-router)","promptLength":1618,"options":{"temperature":0.2,"maxTokens":3000}}
+2026-01-12 20:44:59 [[34mdebug[39m]: [LocalAIProvider] Generating response {"promptLength":1618,"temperature":0.2,"maxTokens":3000}
+2026-01-12 20:44:59 [[34mdebug[39m]: [LocalLLMProvider] Generating response {"model":"agents-nemotron","temperature":0.2,"maxTokens":3000,"promptLength":1618}
+2026-01-12 20:45:50 [[34mdebug[39m]: [LocalLLMProvider] Response generated {"model":"agents-nemotron","tokensUsed":3361,"duration":51812,"contentLength":3392}
+2026-01-12 20:45:50 [[34mdebug[39m]: [LocalAIProvider] Response generated {"model":"agents-nemotron","tokensUsed":3361,"contentLength":3392}
+2026-01-12 20:45:50 [[32minfo[39m]: [AIManager] Request completed {"provider":"Local LLM (llamacpp-router)","duration":51814,"responseLength":3392}
+2026-01-12 20:45:50 [[31merror[39m]: [RoleResearch] Failed to research persona {"error":"Unexpected non-whitespace character after JSON at position 349 (line 4 column 4)","roleName":"Software Engineer"}
+2026-01-12 20:45:50 [[32minfo[39m]: [RoleResearch] Researching persona {"roleName":"QA Engineer","canonicalName":"qa_engineer","category":"technical"}
+2026-01-12 20:45:50 [[34mdebug[39m]: [AIManager] Sending request {"provider":"Local LLM (llamacpp-router)","promptLength":1603,"options":{"temperature":0.2,"maxTokens":3000}}
+2026-01-12 20:45:50 [[34mdebug[39m]: [LocalAIProvider] Generating response {"promptLength":1603,"temperature":0.2,"maxTokens":3000}
+2026-01-12 20:45:50 [[34mdebug[39m]: [LocalLLMProvider] Generating response {"model":"agents-nemotron","temperature":0.2,"maxTokens":3000,"promptLength":1603}
+2026-01-12 20:46:17 [[34mdebug[39m]: [LocalLLMProvider] Response generated {"model":"agents-nemotron","tokensUsed":1954,"duration":26814,"contentLength":3852}
+2026-01-12 20:46:17 [[34mdebug[39m]: [LocalAIProvider] Response generated {"model":"agents-nemotron","tokensUsed":1954,"contentLength":3852}
+2026-01-12 20:46:17 [[32minfo[39m]: [AIManager] Request completed {"provider":"Local LLM (llamacpp-router)","duration":26815,"responseLength":3852}
+2026-01-12 20:46:17 [[32minfo[39m]: [RoleResearch] Persona research complete {"roleName":"QA Engineer","skillCount":6,"durationMs":26816}
+2026-01-12 20:46:17 [[32minfo[39m]: [AgentCompiler] Starting compilation {"inputCount":2,"projectName":"vcce2etest"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [BackendSelector] Starting selection {"category":"technical","policyBackends":["llm","hybrid"],"constraintCount":0,"llmHint":"llm"}
+2026-01-12 20:46:17 [[32minfo[39m]: [BackendSelector] Selection complete {"category":"technical","selected":"llm","layer":"hint","validOptions":["llm","hybrid"],"excludedCount":0}
+2026-01-12 20:46:17 [[34mdebug[39m]: [BackendSelector] Starting selection {"category":"technical","policyBackends":["llm","hybrid"],"constraintCount":0,"llmHint":"decision"}
+2026-01-12 20:46:17 [[32minfo[39m]: [BackendSelector] Selection complete {"category":"technical","selected":"llm","layer":"policy","validOptions":["llm","hybrid"],"excludedCount":0}
+2026-01-12 20:46:17 [[32minfo[39m]: [AgentCompiler] Compilation successful {"teamId":"team_2cbab2f144a9","roleCount":2,"warningCount":0,"durationMs":2}
+2026-01-12 20:46:17 [[32minfo[39m]: [TeamOrchestrator] Team generation complete {"teamId":"team_2cbab2f144a9","roleCount":2,"durationMs":130234}
+SELECT id FROM projects WHERE id = 'proj-1768268647332'
+INSERT INTO projects (id, name, description, created_at, updated_at) VALUES ('proj-1768268647332', 'vcc-e2e-test', 'SDLAF orchestrated project: vcc-'/*+8 bytes*/, '2026-01-13T01:46:17.701Z', '2026-01-13T01:46:17.701Z')
+2026-01-12 20:46:17 [[32minfo[39m]: [SDLAF] Created project record {"projectId":"proj-1768268647332"}
+2026-01-12 20:46:17 [[32minfo[39m]: [AgentGenerator] Generating agent from role {"roleId":"role_software_engineer_8448118696fb","roleName":"Software Engineer","category":"technical","projectId":"proj-1768268647332"}
+INSERT INTO agents (id, project_id, name, type, config, status, created_at, updated_at)
+       VALUES ('f6bdb6e0-eefb-4f9a-9bc9-cbfb5a1c'/*+4 bytes*/, 'proj-1768268647332', 'vcc-e2e-test', 'backend_specialist', '{"id":"f6bdb6e0-eefb-4f9a-9bc9-c'/*+1520 bytes*/, 'active', '2026-01-13T01:46:17.702Z', '2026-01-13T01:46:17.702Z')
+       ON CONFLICT (id) DO UPDATE SET
+         project_id = EXCLUDED.project_id,
+         name = EXCLUDED.name,
+         type = EXCLUDED.type,
+         config = EXCLUDED.config,
+         status = EXCLUDED.status,
+         updated_at = EXCLUDED.updated_at
+2026-01-12 20:46:17 [[32minfo[39m]: [AgentGenerator] Agent generated from role successfully {"agentId":"f6bdb6e0-eefb-4f9a-9bc9-cbfb5a1cdb3d","roleId":"role_software_engineer_8448118696fb","roleName":"Software Engineer","toolCount":0,"duration":1}
+2026-01-12 20:46:17 [[34mdebug[39m]: [SDLAF] Generated agent from compiled role {"agentId":"f6bdb6e0-eefb-4f9a-9bc9-cbfb5a1cdb3d","roleId":"role_software_engineer_8448118696fb","roleName":"Software Engineer","category":"technical"}
+2026-01-12 20:46:17 [[32minfo[39m]: [AgentGenerator] Generating agent from role {"roleId":"role_qa_engineer_ec3e3f70f5b4","roleName":"QA Engineer","category":"technical","projectId":"proj-1768268647332"}
+INSERT INTO agents (id, project_id, name, type, config, status, created_at, updated_at)
+       VALUES ('e61b55be-e170-441a-9672-10ab2a82'/*+4 bytes*/, 'proj-1768268647332', 'vcc-e2e-test', 'backend_specialist', '{"id":"e61b55be-e170-441a-9672-1'/*+3913 bytes*/, 'active', '2026-01-13T01:46:17.703Z', '2026-01-13T01:46:17.703Z')
+       ON CONFLICT (id) DO UPDATE SET
+         project_id = EXCLUDED.project_id,
+         name = EXCLUDED.name,
+         type = EXCLUDED.type,
+         config = EXCLUDED.config,
+         status = EXCLUDED.status,
+         updated_at = EXCLUDED.updated_at
+2026-01-12 20:46:17 [[32minfo[39m]: [AgentGenerator] Agent generated from role successfully {"agentId":"e61b55be-e170-441a-9672-10ab2a82485b","roleId":"role_qa_engineer_ec3e3f70f5b4","roleName":"QA Engineer","toolCount":0,"duration":0}
+2026-01-12 20:46:17 [[34mdebug[39m]: [SDLAF] Generated agent from compiled role {"agentId":"e61b55be-e170-441a-9672-10ab2a82485b","roleId":"role_qa_engineer_ec3e3f70f5b4","roleName":"QA Engineer","category":"technical"}
+2026-01-12 20:46:17 [[32minfo[39m]: [SDLAF] Team generation complete {"teamId":"team_2cbab2f144a9","roleCount":2,"agentCount":2,"duration":130237,"normalizationStats":{"inputCount":2,"outputCount":2,"mergedCount":0,"droppedCount":0}}
+   ✓ Team generated: 2 compiled agents
+   ✓ Team ID: team_2cbab2f144a9
+   ✓ Roles: 2 recommended → 2 after normalization
+   Backend distribution:
+      - llm: 2 agent(s)
+
+📋 Loading OutputSpec...
+   Path: /home/platano/project/SDLAF/examples/vcc_regression_test.yml
+   ✓ Loaded: Contract-Driven Convergence Regression Test
+   ✓ Deliverables: 1
+   ✓ Acceptance Criteria: 2
+
+🔍 Running OutputSpec integrity pass...
+   ⚠️  Integrity check skipped: ac.targetDeliverables is not iterable
+
+🎬 Starting Orchestration
+============================================================
+
+📋 Agent Roster:
+   1. Software Engineer (technical)
+   2. QA Engineer (technical)
+
+2026-01-12 20:46:17 [[32minfo[39m]: [SDLAFOrchestrator] Starting orchestration {"project":"vcc-e2e-test","mode":"autonomous-local","agentCount":2,"pipelineVersion":"v3.0-compiled"}
+2026-01-12 20:46:17 [[32minfo[39m]: [SDLAFOrchestrator] Creating project record...
+INSERT INTO projects (id, name, description, created_at, updated_at)
+         VALUES ('proj-1768268647332', 'vcc-e2e-test', 'SDLAF orchestrated project: vcc-'/*+8 bytes*/, '2026-01-13T01:46:17.712Z', '2026-01-13T01:46:17.712Z')
+         ON CONFLICT (id) DO UPDATE SET
+           name = EXCLUDED.name,
+           description = EXCLUDED.description,
+           updated_at = EXCLUDED.updated_at
+2026-01-12 20:46:17 [[32minfo[39m]: [SDLAFOrchestrator] Project record created {"projectId":"proj-1768268647332","name":"vcc-e2e-test"}
+2026-01-12 20:46:17 [[32minfo[39m]: [SDLAFOrchestrator] Using pre-compiled agents (v3.0 path) {"agentCount":2}
+2026-01-12 20:46:17 [[32minfo[39m]: [SDLAFOrchestrator] Building workflow...
+2026-01-12 20:46:17 [[32minfo[39m]: [SDLAFOrchestrator] Running scout reconnaissance phase...
+
+🔍 Scout Agent: Reconnaissance Phase
+   Exploring codebase structure...
+2026-01-12 20:46:17 [[32minfo[39m]: [ScoutAgent] Starting reconnaissance phase {"projectPath":".","workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [FileService] Dynamic limits calculated {"contextLimit":131072,"reserveRatio":0.5,"availableForResults":65536,"maxDepth":5,"limit":2000}
+2026-01-12 20:46:17 [[32minfo[39m]: [FileService] listFiles completed {"path":".","maxDepth":5,"limit":5000,"totalFound":898,"returned":898,"hasMore":false,"estimatedTokens":10802}
+2026-01-12 20:46:17 [[32minfo[39m]: [ScoutAgent] Structure mapped {"totalFiles":898}
+2026-01-12 20:46:17 [[32minfo[39m]: [ScoutAgent] Strategy selected {"strategy":"focused"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_listing","contextKey":".","estimatedTokens":14386,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[32minfo[39m]: [ScoutAgent] Task relevance analyzed {"keywords":[],"matchedFiles":0}
+2026-01-12 20:46:17 [[32minfo[39m]: [ScoutAgent] Files prioritized {"candidates":113,"willRead":40}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/project-analyzer.ts","tokens":2410}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/sdlaf.ts","tokens":10721}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/agents/agent-compiler.ts","tokens":5164}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/agents/agent-selection-rules.ts","tokens":2164}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/agents/backend-selector.ts","tokens":3639}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/agents/claude-code-exporter.ts","tokens":2060}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/agents/executor.ts","tokens":3712}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/agents/generator.ts","tokens":6379}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/agents/role-converter.ts","tokens":3443}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/agents/role-normalizer.ts","tokens":5098}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/agents/role-research-service.ts","tokens":5461}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/agents/role-types.ts","tokens":4460}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/agents/team-orchestrator.ts","tokens":4407}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/agents/template-generator.ts","tokens":3991}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/agents/types.ts","tokens":2244}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/ai/ai-manager.ts","tokens":3531}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/ai/ai-provider-factory.ts","tokens":2822}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/ai/local-model-discovery.ts","tokens":3625}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/ai/provider-registry.ts","tokens":2534}
+2026-01-12 20:46:17 [[34mdebug[39m]: [ScoutAgent] Skipping large file {"path":"src/core/context/context-manager.ts","tokens":2171}
+2026-01-12 20:46:17 [[32minfo[39m]: [ScoutAgent] Key files read {"count":24}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/index.ts","estimatedTokens":358,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"package.json","estimatedTokens":1247,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"tsconfig.json","estimatedTokens":199,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"docker-compose.yml","estimatedTokens":844,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"README.md","estimatedTokens":1514,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"CONTRIBUTING.md","estimatedTokens":1095,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/core/artifact-validator.ts","estimatedTokens":938,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/core/context-profile.ts","estimatedTokens":775,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/core/scope-validator.ts","estimatedTokens":1162,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/core/agents/agent-scoring.types.ts","estimatedTokens":231,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/core/agents/agent-selector.ts","estimatedTokens":1343,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/core/agents/backend-types.ts","estimatedTokens":813,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/core/agents/index.ts","estimatedTokens":798,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/core/agents/role-templates.ts","estimatedTokens":1050,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/core/agents/template-cache.ts","estimatedTokens":767,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/core/agents/template-types.ts","estimatedTokens":332,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/core/agents/template-validator.ts","estimatedTokens":1605,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/core/ai/ai-types.ts","estimatedTokens":671,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/core/ai/base-provider.ts","estimatedTokens":1636,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/core/ai/dynamic-model-system.ts","estimatedTokens":1422,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/core/ai/index.ts","estimatedTokens":503,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/core/context/context-types.ts","estimatedTokens":641,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/core/mcp/mcp-bridge.ts","estimatedTokens":1036,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"file_content","contextKey":"src/core/mcp/mock-mcp-connection.ts","estimatedTokens":849,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"metadata","contextKey":"scout_summary","estimatedTokens":284,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [AgentContextStore] Stored context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","contextType":"metadata","contextKey":"task_relevance","estimatedTokens":15,"expiresIn":"3600s"}
+2026-01-12 20:46:17 [[32minfo[39m]: [ScoutAgent] Reconnaissance complete {"totalFiles":898,"filesRead":24,"estimatedTokens":23314,"duration":174,"explorationStrategy":"focused","failuresRecovered":0}
+   ✅ Found 898 files
+   ✅ Analyzed 24 key files
+   ✅ Context cached for agents (~23314 tokens)
+2026-01-12 20:46:17 [[32minfo[39m]: [SDLAFOrchestrator] Scout phase complete {"totalFiles":898,"filesRead":24,"estimatedTokens":23314,"duration":174,"explorationStrategy":"focused","failuresRecovered":0}
+2026-01-12 20:46:17 [[32minfo[39m]: [SDLAFOrchestrator] Injecting scout context into agent prompts
+2026-01-12 20:46:17 [[32minfo[39m]: [SDLAFOrchestrator] Scout context injected {"tasksUpdated":2,"contextLength":925}
+2026-01-12 20:46:17 [[32minfo[39m]: [ToolArgumentValidator] Context updated {"projectType":"Web","validPathCount":24,"invalidPathCount":4}
+   ✅ Validator wired: 24 valid paths, project type: Web
+2026-01-12 20:46:17 [[32minfo[39m]: [SDLAFOrchestrator] ToolArgumentValidator wired with scout context {"projectType":"Web","validPathCount":24,"knownFileCount":898}
+2026-01-12 20:46:17 [[32minfo[39m]: [SDLAFOrchestrator] Initializing execution engine...
+2026-01-12 20:46:17 [[32minfo[39m]: [LocalExecutionEngine] Initializing for workflow {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","taskCount":2}
+2026-01-12 20:46:17 [[32minfo[39m]: [LocalLLMProvider] Starting endpoint auto-detection...
+2026-01-12 20:46:17 [[32minfo[39m]: [LocalServiceDetector] Using LOCAL_LLM_ENDPOINT override {"endpoint":"http://localhost:8081"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [LocalServiceDetector] Found loaded model in router {"model":"agents-nemotron"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [LocalServiceDetector] Valid LLM endpoint found {"baseUrl":"http://localhost:8081","service":"llamacpp-router","modelCount":14}
+2026-01-12 20:46:17 [[32minfo[39m]: [LocalLLMProvider] Endpoint detected {"service":"llamacpp-router","url":"http://localhost:8081/v1","model":"agents-nemotron"}
+2026-01-12 20:46:17 [[32minfo[39m]: [LocalExecutionEngine] Connected to local LLM {"service":"llamacpp-router","endpoint":"http://localhost:8081/v1","model":"agents-nemotron"}
+2026-01-12 20:46:17 [[32minfo[39m]: [QualityBudgetIntegration] Updated threshold for detected model: agents-nemotron (class=unknown, threshold=50)
+2026-01-12 20:46:17 [[32minfo[39m]: [LocalExecutionEngine] Agent tools initialized {"toolCount":4,"tools":["read_file","write_file","edit_file","list_files"],"isParallelRouter":true,"modelContextLimit":4096,"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061"}
+✅ Pattern cache initialized (max: 10000, TTL: 3600s)
+2026-01-12 20:46:17 [[34mdebug[39m]: [PatternIntegrationHook] Initialized with warmed cache
+2026-01-12 20:46:17 [[32minfo[39m]: [SDLAFOrchestrator] Executing tasks...
+
+[                    ] 0% - Task 1/2
+🎯 Executing: Backend Specialist task for vcc-e2e-test
+2026-01-12 20:46:17 [[32minfo[39m]: [SDLAFOrchestrator] Executing task 1/2: Backend Specialist task for vcc-e2e-test
+2026-01-12 20:46:17 [[32minfo[39m]: [task:27ddf6ff agent:backend_specialist] [LocalExecutionEngine] Executing task
+2026-01-12 20:46:17 [[32minfo[39m]: [task:27ddf6ff] [PatternIntegrationHook] Pre-execution complete {"patternsRetrieved":0,"recommendationsCount":0,"estimatedGain":0,"memoryEnabled":false,"memoryContextRetrieved":false,"crossModeAggregationEnabled":false,"aggregatedPatternsCount":0}
+2026-01-12 20:46:17 [[34mdebug[39m]: [TemperatureResolver] Using default temperature {"temperature":0.7}
+2026-01-12 20:46:17 [[34mdebug[39m]: [task:27ddf6ff] [LocalExecutionEngine] Resolved temperature {"temperature":0.7,"method":"default","source":"config_default"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [task:27ddf6ff agent:backend_specialist] [LocalExecutionEngine] Dynamic resource limits {"complexity":"medium","timeoutMs":72000,"maxTokens":3000}
+2026-01-12 20:46:17 [[34mdebug[39m]: [LocalExecutionEngine] Tech stack detected via anchor file {"file":"package.json","primary":"typescript","framework":"node"}
+2026-01-12 20:46:17 [[34mdebug[39m]: [LocalExecutionEngine] Tech stack file extension analysis {"counts":{"typescript":527,"javascript":13,"python":1},"primary":"typescript","secondary":["javascript","python"]}
+2026-01-12 20:46:17 [[34mdebug[39m]: [task:27ddf6ff] [LocalExecutionEngine] Added tech stack context {"primary":"typescript","confidence":0.9}
+2026-01-12 20:46:17 [[32minfo[39m]: [ToolArgumentValidator] Context updated {"projectType":"Web","validPathCount":0,"invalidPathCount":0}
+2026-01-12 20:46:17 [[34mdebug[39m]: [task:27ddf6ff] [LocalExecutionEngine] Wired scout context to ToolArgumentValidator {"projectType":"Web","knownFileCount":0}
+2026-01-12 20:46:17 [[34mdebug[39m]: [LocalExecutionEngine] Executing with tools {"toolCount":4,"tools":["read_file","write_file","edit_file","list_files"]}
+2026-01-12 20:46:17 [[34mdebug[39m]: Starting tool execution loop {"component":"LocalLLMAgentClient","toolCount":4,"maxIterations":10}
+2026-01-12 20:46:17 [[34mdebug[39m]: [LocalLLMProvider] Generating response {"model":"agents-nemotron","temperature":0.7,"maxTokens":3000,"promptLength":1381}
+2026-01-12 20:46:22 [[34mdebug[39m]: [LocalLLMProvider] Response generated {"model":"agents-nemotron","tokensUsed":1924,"duration":4468,"contentLength":525}
+2026-01-12 20:46:22 [[34mdebug[39m]: Tool loop completed - no more tool calls {"component":"LocalLLMAgentClient","iterations":1,"totalTokensUsed":1924}
+2026-01-12 20:46:22 [[34mdebug[39m]: [QualityPipeline] Assessment complete {"score":28,"completeness":50,"specificity":12,"actionability":20,"truncated":false}
+2026-01-12 20:46:22 [[32minfo[39m]: [task:27ddf6ff] [LocalExecutionEngine] Using contract-driven convergence {"initialScore":28,"qualityIsMust":true}
+2026-01-12 20:46:22 [[34mdebug[39m]: [QualityPipeline] Assessment complete {"score":28,"completeness":50,"specificity":12,"actionability":20,"truncated":false}
+2026-01-12 20:46:22 [[32minfo[39m]: [QualityPipeline] Starting contract-driven convergence {"initialScore":28,"targetScore":70,"maxPasses":5,"maxWallClockMs":300000,"qualityIsMust":true}
+2026-01-12 20:46:22 [[34mdebug[39m]: [DeliverableValidator] Validation complete {"totalScore":14,"projectSpecificity":0,"actionability":0,"technicalDepth":14}
+2026-01-12 20:46:22 [[33mwarn[39m]: [DeliverableQualityEnforcer] Quality below threshold {"score":14,"threshold":60}
+2026-01-12 20:46:22 [[34mdebug[39m]: [ContextBudgetValidator] Validation complete {"tokensUsed":132,"limit":8000,"utilization":2,"truncated":false,"withinBudget":true}
+2026-01-12 20:46:22 [[34mdebug[39m]: [task:27ddf6ff] [LocalExecutionEngine] Acceptance criteria evaluation {"failingMust":1,"failingShould":0,"qualityScore":14}
+2026-01-12 20:46:22 [[32minfo[39m]: [QualityPipeline] Initial acceptance evaluation {"failingMust":2,"failingShould":0}
+2026-01-12 20:46:22 [[32minfo[39m]: [QualityPipeline] Convergence iteration {"iteration":1,"elapsedMs":2,"failingMust":2,"stagnantIterations":0}
+2026-01-12 20:46:22 [[34mdebug[39m]: [QualityPipeline] Using structured refinement (P0) {"criticalIssues":2,"majorIssues":1,"preservedSections":0}
+2026-01-12 20:46:22 [[34mdebug[39m]: [task:27ddf6ff] [LocalExecutionEngine] Convergence iteration {"iteration":1}
+2026-01-12 20:46:22 [[34mdebug[39m]: Executing single turn with local LLM {"component":"LocalLLMAgentClient","prompt":"REFINEMENT REQUEST - TARGETED IMPROVEMENTS\n\nORIGINAL TASK: Backend Specialist task for vcc-e2e-test\n"}
+2026-01-12 20:46:22 [[34mdebug[39m]: [LocalLLMProvider] Generating response {"model":"agents-nemotron","temperature":0.7,"maxTokens":3000,"promptLength":1720}
+2026-01-12 20:47:13 [[34mdebug[39m]: [LocalLLMProvider] Response generated {"model":"agents-nemotron","tokensUsed":4115,"duration":50795,"contentLength":12823}
+[PatternExtractor] Recording pattern: default/default
+[PatternExtractor] Pattern ID: pat_2f96b8110185, Pattern: agent::very_long:general
+[PatternExtractor] ✅ Agent pattern recorded successfully
+2026-01-12 20:47:13 [[34mdebug[39m]: Single turn completed successfully {"component":"LocalLLMAgentClient","tokensUsed":4115,"model":"agents-nemotron"}
+2026-01-12 20:47:13 [[34mdebug[39m]: [QualityPipeline] Assessment complete {"score":73,"completeness":100,"specificity":66,"actionability":100,"truncated":true}
+2026-01-12 20:47:13 [[34mdebug[39m]: [DeliverableValidator] Validation complete {"totalScore":60,"projectSpecificity":0,"actionability":30,"technicalDepth":30}
+2026-01-12 20:47:13 [[34mdebug[39m]: [ContextBudgetValidator] Validation complete {"tokensUsed":3206,"limit":8000,"utilization":40,"truncated":true,"withinBudget":false}
+2026-01-12 20:47:13 [[34mdebug[39m]: [task:27ddf6ff] [LocalExecutionEngine] Acceptance criteria evaluation {"failingMust":0,"failingShould":1,"qualityScore":60}
+2026-01-12 20:47:13 [[34mdebug[39m]: [QualityPipeline] Iteration result {"iteration":1,"previousScore":28,"newScore":73,"previousFailingMust":2,"newFailingMust":0,"contractProgress":2}
+2026-01-12 20:47:13 [[32minfo[39m]: [QualityPipeline] Contract progress made {"iteration":1,"contractProgress":2,"remainingFailingMust":0}
+2026-01-12 20:47:13 [[32minfo[39m]: [QualityPipeline] All MUST criteria satisfied {"iteration":1,"finalScore":73}
+2026-01-12 20:47:13 [[32minfo[39m]: [task:27ddf6ff] [LocalExecutionEngine] Contract-driven convergence complete {"status":"success","reason":"criteria_satisfied","iterations":1,"finalScore":73,"failingMust":0}
+2026-01-12 20:47:13 [[34mdebug[39m]: [DeliverableValidator] Validation complete {"totalScore":60,"projectSpecificity":0,"actionability":30,"technicalDepth":30}
+2026-01-12 20:47:13 [[34mdebug[39m]: [ContextBudgetValidator] Validation complete {"tokensUsed":3206,"limit":8000,"utilization":40,"truncated":true,"withinBudget":false}
+2026-01-12 20:47:13 [[32minfo[39m]: [task:27ddf6ff] [LocalExecutionEngine] Quality validation {"score":60,"meetsThreshold":true}
+2026-01-12 20:47:13 [[32minfo[39m]: [task:27ddf6ff] [LocalExecutionEngine] Budget validation {"tokensUsed":3206,"utilization":"40%","truncated":true}
+2026-01-12 20:47:13 [[33mwarn[39m]: [task:27ddf6ff] [LocalExecutionEngine] Output appears truncated - incomplete sentences or unclosed blocks detected
+📈 Intelligence gain recorded:
+   - Project: .
+   - Amplification: 1.00x
+   - Growth Rate: 0.00 points/day
+2026-01-12 20:47:13 [[32minfo[39m]: [task:27ddf6ff] [PatternIntegrationHook] Post-execution recorded {"improvement":0.09999999999999998,"patternsApplied":0,"aggregatedPatternsApplied":0}
+2026-01-12 20:47:13 [[32minfo[39m]: [task:27ddf6ff] [LocalExecutionEngine] Task completed {"duration":55340,"tokensUsed":1924,"qualityScore":60,"patternsApplied":0}
+2026-01-12 20:47:13 [[32minfo[39m]: [task:27ddf6ff agent:backend_specialist] [SDLAFOrchestrator] Deliverable saved {"filepath":"sdlaf-exports/deliverables/2026-01-13T01-47-13-241Z_backend-specialist_27ddf6ff.md"}
+2026-01-12 20:47:13 [[33mwarn[39m]: [ContextManager] recordTaskResult called without initialized project
+✅ Task 1/2 completed in 55.3s (Cost: $0.0000)
+[██████████          ] 50% Complete
+2026-01-12 20:47:13 [[32minfo[39m]: [SDLAFOrchestrator] Task completed: 27ddf6ff-4032-4530-a9a4-2664302ea449 {"success":true,"duration":55340,"cost":0,"deliverable":"sdlaf-exports/deliverables/2026-01-13T01-47-13-241Z_backend-specialist_27ddf6ff.md"}
+
+[██████████          ] 50% - Task 2/2
+🎯 Executing: Backend Specialist task for vcc-e2e-test
+2026-01-12 20:47:13 [[32minfo[39m]: [SDLAFOrchestrator] Executing task 2/2: Backend Specialist task for vcc-e2e-test
+2026-01-12 20:47:13 [[32minfo[39m]: [task:00ce0348 agent:backend_specialist] [LocalExecutionEngine] Executing task
+2026-01-12 20:47:13 [[32minfo[39m]: [task:00ce0348] [PatternIntegrationHook] Pre-execution complete {"patternsRetrieved":0,"recommendationsCount":0,"estimatedGain":0,"memoryEnabled":false,"memoryContextRetrieved":false,"crossModeAggregationEnabled":false,"aggregatedPatternsCount":0}
+2026-01-12 20:47:13 [[34mdebug[39m]: [TemperatureResolver] Using default temperature {"temperature":0.7}
+2026-01-12 20:47:13 [[34mdebug[39m]: [task:00ce0348] [LocalExecutionEngine] Resolved temperature {"temperature":0.7,"method":"default","source":"config_default"}
+2026-01-12 20:47:13 [[34mdebug[39m]: [task:00ce0348 agent:backend_specialist] [LocalExecutionEngine] Dynamic resource limits {"complexity":"medium","timeoutMs":72000,"maxTokens":3000}
+2026-01-12 20:47:13 [[34mdebug[39m]: [LocalExecutionEngine] Tech stack detected via anchor file {"file":"package.json","primary":"typescript","framework":"node"}
+2026-01-12 20:47:13 [[34mdebug[39m]: [LocalExecutionEngine] Tech stack file extension analysis {"counts":{"typescript":527,"javascript":13,"python":1},"primary":"typescript","secondary":["javascript","python"]}
+2026-01-12 20:47:13 [[34mdebug[39m]: [task:00ce0348] [LocalExecutionEngine] Added tech stack context {"primary":"typescript","confidence":0.9}
+2026-01-12 20:47:13 [[32minfo[39m]: [ToolArgumentValidator] Context updated {"projectType":"Web","validPathCount":0,"invalidPathCount":0}
+2026-01-12 20:47:13 [[34mdebug[39m]: [task:00ce0348] [LocalExecutionEngine] Wired scout context to ToolArgumentValidator {"projectType":"Web","knownFileCount":0}
+2026-01-12 20:47:13 [[34mdebug[39m]: [LocalExecutionEngine] Executing with tools {"toolCount":4,"tools":["read_file","write_file","edit_file","list_files"]}
+2026-01-12 20:47:13 [[34mdebug[39m]: Starting tool execution loop {"component":"LocalLLMAgentClient","toolCount":4,"maxIterations":10}
+2026-01-12 20:47:13 [[34mdebug[39m]: [LocalLLMProvider] Generating response {"model":"agents-nemotron","temperature":0.7,"maxTokens":3000,"promptLength":1381}
+2026-01-12 20:47:15 [[34mdebug[39m]: [LocalLLMProvider] Response generated {"model":"agents-nemotron","tokensUsed":2339,"duration":2111,"contentLength":290}
+2026-01-12 20:47:15 [[34mdebug[39m]: Tool loop completed - no more tool calls {"component":"LocalLLMAgentClient","iterations":1,"totalTokensUsed":2339}
+2026-01-12 20:47:15 [[34mdebug[39m]: [QualityPipeline] Assessment complete {"score":31,"completeness":50,"specificity":20,"actionability":20,"truncated":false}
+2026-01-12 20:47:15 [[32minfo[39m]: [task:00ce0348] [LocalExecutionEngine] Using contract-driven convergence {"initialScore":31,"qualityIsMust":true}
+2026-01-12 20:47:15 [[34mdebug[39m]: [QualityPipeline] Assessment complete {"score":31,"completeness":50,"specificity":20,"actionability":20,"truncated":false}
+2026-01-12 20:47:15 [[32minfo[39m]: [QualityPipeline] Starting contract-driven convergence {"initialScore":31,"targetScore":70,"maxPasses":5,"maxWallClockMs":300000,"qualityIsMust":true}
+2026-01-12 20:47:15 [[34mdebug[39m]: [DeliverableValidator] Validation complete {"totalScore":6,"projectSpecificity":0,"actionability":0,"technicalDepth":6}
+2026-01-12 20:47:15 [[33mwarn[39m]: [DeliverableQualityEnforcer] Quality below threshold {"score":6,"threshold":60}
+2026-01-12 20:47:15 [[34mdebug[39m]: [ContextBudgetValidator] Validation complete {"tokensUsed":73,"limit":8000,"utilization":1,"truncated":false,"withinBudget":true}
+2026-01-12 20:47:15 [[34mdebug[39m]: [task:00ce0348] [LocalExecutionEngine] Acceptance criteria evaluation {"failingMust":1,"failingShould":0,"qualityScore":6}
+2026-01-12 20:47:15 [[32minfo[39m]: [QualityPipeline] Initial acceptance evaluation {"failingMust":2,"failingShould":0}
+2026-01-12 20:47:15 [[32minfo[39m]: [QualityPipeline] Convergence iteration {"iteration":1,"elapsedMs":0,"failingMust":2,"stagnantIterations":0}
+2026-01-12 20:47:15 [[34mdebug[39m]: [QualityPipeline] Using structured refinement (P0) {"criticalIssues":2,"majorIssues":1,"preservedSections":0}
+2026-01-12 20:47:15 [[34mdebug[39m]: [task:00ce0348] [LocalExecutionEngine] Convergence iteration {"iteration":1}
+2026-01-12 20:47:15 [[34mdebug[39m]: Executing single turn with local LLM {"component":"LocalLLMAgentClient","prompt":"REFINEMENT REQUEST - TARGETED IMPROVEMENTS\n\nORIGINAL TASK: Backend Specialist task for vcc-e2e-test\n"}
+2026-01-12 20:47:15 [[34mdebug[39m]: [LocalLLMProvider] Generating response {"model":"agents-nemotron","temperature":0.7,"maxTokens":3000,"promptLength":1313}
+2026-01-12 20:48:06 [[34mdebug[39m]: [LocalLLMProvider] Response generated {"model":"agents-nemotron","tokensUsed":4493,"duration":50726,"contentLength":12800}
+[PatternExtractor] Recording pattern: default/default
+[PatternExtractor] Pattern ID: pat_c471a47aab5f, Pattern: agent::very_long:ai
+[PatternExtractor] ✅ Agent pattern recorded successfully
+2026-01-12 20:48:06 [[34mdebug[39m]: Single turn completed successfully {"component":"LocalLLMAgentClient","tokensUsed":4493,"model":"agents-nemotron"}
+2026-01-12 20:48:06 [[34mdebug[39m]: [QualityPipeline] Assessment complete {"score":60,"completeness":95,"specificity":33,"actionability":100,"truncated":true}
+2026-01-12 20:48:06 [[34mdebug[39m]: [DeliverableValidator] Validation complete {"totalScore":54,"projectSpecificity":0,"actionability":30,"technicalDepth":24}
+2026-01-12 20:48:06 [[33mwarn[39m]: [DeliverableQualityEnforcer] Quality below threshold {"score":54,"threshold":60}
+2026-01-12 20:48:06 [[34mdebug[39m]: [ContextBudgetValidator] Validation complete {"tokensUsed":3200,"limit":8000,"utilization":40,"truncated":true,"withinBudget":false}
+2026-01-12 20:48:06 [[34mdebug[39m]: [task:00ce0348] [LocalExecutionEngine] Acceptance criteria evaluation {"failingMust":1,"failingShould":1,"qualityScore":54}
+2026-01-12 20:48:06 [[34mdebug[39m]: [QualityPipeline] Iteration result {"iteration":1,"previousScore":31,"newScore":60,"previousFailingMust":2,"newFailingMust":2,"contractProgress":0}
+2026-01-12 20:48:06 [[32minfo[39m]: [QualityPipeline] Quality improved {"iteration":1,"oldScore":60,"newScore":60}
+2026-01-12 20:48:06 [[32minfo[39m]: [QualityPipeline] Convergence iteration {"iteration":2,"elapsedMs":50729,"failingMust":2,"stagnantIterations":0}
+2026-01-12 20:48:06 [[34mdebug[39m]: [QualityPipeline] Using structured refinement (P0) {"criticalIssues":2,"majorIssues":0,"preservedSections":10}
+2026-01-12 20:48:06 [[34mdebug[39m]: [task:00ce0348] [LocalExecutionEngine] Convergence iteration {"iteration":2}
+2026-01-12 20:48:06 [[34mdebug[39m]: Executing single turn with local LLM {"component":"LocalLLMAgentClient","prompt":"REFINEMENT REQUEST - TARGETED IMPROVEMENTS\n\nORIGINAL TASK: Backend Specialist task for vcc-e2e-test\n"}
+2026-01-12 20:48:06 [[34mdebug[39m]: [LocalLLMProvider] Generating response {"model":"agents-nemotron","temperature":0.7,"maxTokens":3000,"promptLength":9992}
+2026-01-12 20:48:37 [[34mdebug[39m]: [LocalLLMProvider] Response generated {"model":"agents-nemotron","tokensUsed":5388,"duration":31153,"contentLength":7845}
+[PatternExtractor] Recording pattern: default/default
+[PatternExtractor] Pattern ID: pat_1c4265048cf7, Pattern: agent::long:ai
+[PatternExtractor] ✅ Agent pattern recorded successfully
+2026-01-12 20:48:37 [[34mdebug[39m]: Single turn completed successfully {"component":"LocalLLMAgentClient","tokensUsed":5388,"model":"agents-nemotron"}
+2026-01-12 20:48:37 [[34mdebug[39m]: [QualityPipeline] Assessment complete {"score":78,"completeness":90,"specificity":48,"actionability":100,"truncated":false}
+2026-01-12 20:48:37 [[34mdebug[39m]: [DeliverableValidator] Validation complete {"totalScore":54,"projectSpecificity":0,"actionability":30,"technicalDepth":24}
+2026-01-12 20:48:37 [[33mwarn[39m]: [DeliverableQualityEnforcer] Quality below threshold {"score":54,"threshold":60}
+2026-01-12 20:48:37 [[34mdebug[39m]: [ContextBudgetValidator] Validation complete {"tokensUsed":1962,"limit":8000,"utilization":25,"truncated":false,"withinBudget":true}
+2026-01-12 20:48:37 [[34mdebug[39m]: [task:00ce0348] [LocalExecutionEngine] Acceptance criteria evaluation {"failingMust":1,"failingShould":0,"qualityScore":54}
+2026-01-12 20:48:37 [[34mdebug[39m]: [QualityPipeline] Iteration result {"iteration":2,"previousScore":60,"newScore":78,"previousFailingMust":2,"newFailingMust":1,"contractProgress":1}
+2026-01-12 20:48:37 [[32minfo[39m]: [QualityPipeline] Contract progress made {"iteration":2,"contractProgress":1,"remainingFailingMust":1}
+2026-01-12 20:48:37 [[32minfo[39m]: [QualityPipeline] Convergence iteration {"iteration":3,"elapsedMs":81885,"failingMust":1,"stagnantIterations":0}
+2026-01-12 20:48:37 [[34mdebug[39m]: [QualityPipeline] Using structured refinement (P0) {"criticalIssues":0,"majorIssues":1,"preservedSections":1}
+2026-01-12 20:48:37 [[34mdebug[39m]: [task:00ce0348] [LocalExecutionEngine] Convergence iteration {"iteration":3}
+2026-01-12 20:48:37 [[34mdebug[39m]: Executing single turn with local LLM {"component":"LocalLLMAgentClient","prompt":"REFINEMENT REQUEST - TARGETED IMPROVEMENTS\n\nORIGINAL TASK: Backend Specialist task for vcc-e2e-test\n"}
+2026-01-12 20:48:37 [[34mdebug[39m]: [LocalLLMProvider] Generating response {"model":"agents-nemotron","temperature":0.7,"maxTokens":3000,"promptLength":10239}
+2026-01-12 20:49:29 [[34mdebug[39m]: [LocalLLMProvider] Response generated {"model":"agents-nemotron","tokensUsed":6539,"duration":52647,"contentLength":12186}
+[PatternExtractor] Recording pattern: default/default
+[PatternExtractor] Pattern ID: pat_5aefc395e6ba, Pattern: agent::very_long:assets
+[PatternExtractor] ✅ Agent pattern recorded successfully
+2026-01-12 20:49:29 [[34mdebug[39m]: Single turn completed successfully {"component":"LocalLLMAgentClient","tokensUsed":6539,"model":"agents-nemotron"}
+2026-01-12 20:49:29 [[34mdebug[39m]: [QualityPipeline] Assessment complete {"score":71,"completeness":100,"specificity":60,"actionability":100,"truncated":true}
+2026-01-12 20:49:29 [[34mdebug[39m]: [DeliverableValidator] Validation complete {"totalScore":48,"projectSpecificity":0,"actionability":30,"technicalDepth":18}
+2026-01-12 20:49:29 [[33mwarn[39m]: [DeliverableQualityEnforcer] Quality below threshold {"score":48,"threshold":60}
+2026-01-12 20:49:29 [[34mdebug[39m]: [ContextBudgetValidator] Validation complete {"tokensUsed":3047,"limit":8000,"utilization":38,"truncated":false,"withinBudget":true}
+2026-01-12 20:49:29 [[34mdebug[39m]: [task:00ce0348] [LocalExecutionEngine] Acceptance criteria evaluation {"failingMust":1,"failingShould":0,"qualityScore":48}
+2026-01-12 20:49:29 [[34mdebug[39m]: [QualityPipeline] Iteration result {"iteration":3,"previousScore":78,"newScore":71,"previousFailingMust":1,"newFailingMust":1,"contractProgress":0}
+2026-01-12 20:49:29 [[33mwarn[39m]: [QualityPipeline] No progress this iteration {"iteration":3,"stagnantIterations":1,"scoreChange":-7,"mustChange":0}
+2026-01-12 20:49:29 [[32minfo[39m]: [QualityPipeline] Convergence iteration {"iteration":4,"elapsedMs":134535,"failingMust":1,"stagnantIterations":1}
+2026-01-12 20:49:29 [[34mdebug[39m]: [QualityPipeline] Using structured refinement (P0) {"criticalIssues":0,"majorIssues":1,"preservedSections":1}
+2026-01-12 20:49:29 [[34mdebug[39m]: [task:00ce0348] [LocalExecutionEngine] Convergence iteration {"iteration":4}
+2026-01-12 20:49:29 [[34mdebug[39m]: Executing single turn with local LLM {"component":"LocalLLMAgentClient","prompt":"REFINEMENT REQUEST - TARGETED IMPROVEMENTS\n\nORIGINAL TASK: Backend Specialist task for vcc-e2e-test\n"}
+2026-01-12 20:49:29 [[34mdebug[39m]: [LocalLLMProvider] Generating response {"model":"agents-nemotron","temperature":0.7,"maxTokens":3000,"promptLength":10239}
+2026-01-12 20:50:10 [[34mdebug[39m]: [LocalLLMProvider] Response generated {"model":"agents-nemotron","tokensUsed":5862,"duration":41035,"contentLength":9724}
+[PatternExtractor] Recording pattern: default/default
+[PatternExtractor] Pattern ID: pat_e24eae1ad5cd, Pattern: agent::long:movement
+[PatternExtractor] ✅ Agent pattern recorded successfully
+2026-01-12 20:50:10 [[34mdebug[39m]: Single turn completed successfully {"component":"LocalLLMAgentClient","tokensUsed":5862,"model":"agents-nemotron"}
+2026-01-12 20:50:10 [[34mdebug[39m]: [QualityPipeline] Assessment complete {"score":68,"completeness":100,"specificity":50,"actionability":100,"truncated":true}
+2026-01-12 20:50:10 [[34mdebug[39m]: [DeliverableValidator] Validation complete {"totalScore":51,"projectSpecificity":0,"actionability":30,"technicalDepth":21}
+2026-01-12 20:50:10 [[33mwarn[39m]: [DeliverableQualityEnforcer] Quality below threshold {"score":51,"threshold":60}
+2026-01-12 20:50:10 [[34mdebug[39m]: [ContextBudgetValidator] Validation complete {"tokensUsed":2431,"limit":8000,"utilization":30,"truncated":true,"withinBudget":false}
+2026-01-12 20:50:10 [[34mdebug[39m]: [task:00ce0348] [LocalExecutionEngine] Acceptance criteria evaluation {"failingMust":1,"failingShould":1,"qualityScore":51}
+2026-01-12 20:50:10 [[34mdebug[39m]: [QualityPipeline] Iteration result {"iteration":4,"previousScore":78,"newScore":68,"previousFailingMust":1,"newFailingMust":2,"contractProgress":-1}
+2026-01-12 20:50:10 [[33mwarn[39m]: [QualityPipeline] No progress this iteration {"iteration":4,"stagnantIterations":2,"scoreChange":-10,"mustChange":-1}
+2026-01-12 20:50:10 [[32minfo[39m]: [QualityPipeline] Convergence iteration {"iteration":5,"elapsedMs":175573,"failingMust":1,"stagnantIterations":2}
+2026-01-12 20:50:10 [[34mdebug[39m]: [QualityPipeline] Using structured refinement (P0) {"criticalIssues":0,"majorIssues":1,"preservedSections":1}
+2026-01-12 20:50:10 [[34mdebug[39m]: [task:00ce0348] [LocalExecutionEngine] Convergence iteration {"iteration":5}
+2026-01-12 20:50:10 [[34mdebug[39m]: Executing single turn with local LLM {"component":"LocalLLMAgentClient","prompt":"REFINEMENT REQUEST - TARGETED IMPROVEMENTS\n\nORIGINAL TASK: Backend Specialist task for vcc-e2e-test\n"}
+2026-01-12 20:50:10 [[34mdebug[39m]: [LocalLLMProvider] Generating response {"model":"agents-nemotron","temperature":0.7,"maxTokens":3000,"promptLength":10239}
+2026-01-12 20:51:04 [[34mdebug[39m]: [LocalLLMProvider] Response generated {"model":"agents-nemotron","tokensUsed":6539,"duration":53354,"contentLength":12922}
+[PatternExtractor] Recording pattern: default/default
+[PatternExtractor] Pattern ID: pat_c471a47aab5f, Pattern: agent::very_long:ai
+[PatternExtractor] ✅ Agent pattern recorded successfully
+2026-01-12 20:51:04 [[34mdebug[39m]: Single turn completed successfully {"component":"LocalLLMAgentClient","tokensUsed":6539,"model":"agents-nemotron"}
+2026-01-12 20:51:04 [[34mdebug[39m]: [QualityPipeline] Assessment complete {"score":67,"completeness":100,"specificity":48,"actionability":100,"truncated":true}
+2026-01-12 20:51:04 [[34mdebug[39m]: [DeliverableValidator] Validation complete {"totalScore":54,"projectSpecificity":0,"actionability":30,"technicalDepth":24}
+2026-01-12 20:51:04 [[33mwarn[39m]: [DeliverableQualityEnforcer] Quality below threshold {"score":54,"threshold":60}
+2026-01-12 20:51:04 [[34mdebug[39m]: [ContextBudgetValidator] Validation complete {"tokensUsed":3231,"limit":8000,"utilization":40,"truncated":true,"withinBudget":false}
+2026-01-12 20:51:04 [[34mdebug[39m]: [task:00ce0348] [LocalExecutionEngine] Acceptance criteria evaluation {"failingMust":1,"failingShould":1,"qualityScore":54}
+2026-01-12 20:51:04 [[34mdebug[39m]: [QualityPipeline] Iteration result {"iteration":5,"previousScore":78,"newScore":67,"previousFailingMust":1,"newFailingMust":2,"contractProgress":-1}
+2026-01-12 20:51:04 [[33mwarn[39m]: [QualityPipeline] No progress this iteration {"iteration":5,"stagnantIterations":3,"scoreChange":-11,"mustChange":-1}
+2026-01-12 20:51:04 [[33mwarn[39m]: [QualityPipeline] Max passes exhausted {"maxPasses":5,"finalScore":78,"failingMust":["Quality score 54 below threshold"]}
+2026-01-12 20:51:04 [[32minfo[39m]: [task:00ce0348] [LocalExecutionEngine] Contract-driven convergence complete {"status":"failure","reason":"max_passes","iterations":5,"finalScore":78,"failingMust":1}
+2026-01-12 20:51:04 [[31merror[39m]: [task:00ce0348] [LocalExecutionEngine] Task failed convergence - MUST criteria not satisfied {"reason":"max_passes","failingMust":["Quality score 54 below threshold"],"duration":231080}
+2026-01-12 20:51:04 [[32minfo[39m]: [task:00ce0348 agent:backend_specialist] [SDLAFOrchestrator] Deliverable saved {"filepath":"sdlaf-exports/deliverables/2026-01-13T01-51-04-323Z_backend-specialist_00ce0348.md"}
+2026-01-12 20:51:04 [[33mwarn[39m]: [ContextManager] recordTaskResult called without initialized project
+✅ Task 2/2 completed in 231.1s (Cost: $0.0000)
+[████████████████████] 100% Complete
+2026-01-12 20:51:04 [[32minfo[39m]: [SDLAFOrchestrator] Task completed: 00ce0348-a428-4648-9f9a-3173d9b548ec {"success":false,"duration":231080,"cost":0,"deliverable":"sdlaf-exports/deliverables/2026-01-13T01-51-04-323Z_backend-specialist_00ce0348.md"}
+
+[████████████████████] 100% - All tasks completed!
+2026-01-12 20:51:04 [[32minfo[39m]: [LocalExecutionEngine] Cleanup complete
+2026-01-12 20:51:04 [[32minfo[39m]: [AgentContextStore] Cleared workflow context {"workflowId":"74e65b10-5ed9-441c-8e50-4425fd09a061","entriesCleared":27}
+2026-01-12 20:51:04 [[32minfo[39m]: [SDLAFOrchestrator] Context store cleared {"entriesCleared":27}
+2026-01-12 20:51:04 [[32minfo[39m]: [SDLAFOrchestrator] Orchestration complete {"success":false,"tasksCompleted":1,"totalTasks":2,"duration":286614,"cost":0}
+
+============================================================
+
+❌ Orchestration Failed
+   Error: undefined
+   Completed: 1/2
