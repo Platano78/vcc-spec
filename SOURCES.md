@@ -34,3 +34,10 @@
 
 - Guardrails position paper (arXiv:2402.01822): https://arxiv.org/abs/2402.01822
 - Jsonformer repo: https://github.com/1rgs/jsonformer
+
+- Ralph Loop (Geoffrey Huntley): https://ghuntley.com/loop/
+- Ralph Loop Claude Code plugin (Anthropic verified, 38K installs): https://claude.com/plugins/ralph-loop
+- Karpathy autoresearch repo: https://github.com/karpathy/autoresearch
+- Frozen Metric essay (Carlo Iacono, Hybrid Horizons): https://hybridhorizons.substack.com/p/the-frozen-metric-of-autoresearch
+- pi-autoresearch (domain-agnostic extension): https://github.com/davebcn87/pi-autoresearch
+- AgentForge (reference implementation): https://github.com/Platano78/AgentForge
