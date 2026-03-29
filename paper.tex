@@ -31,7 +31,7 @@ LLM-based autonomous systems have progressed from single-shot generation to mult
 
 This paper addresses the question: \emph{How can an autonomous execution system define and enforce successful termination such that a run completes if and only if objective acceptance criteria are satisfied?}
 
-We propose \textbf{Verifiable Completion Contracts (VCC)}, a declarative specification format that defines the necessary and sufficient conditions for declaring an autonomous run complete. VCC is released as an open specification to encourage adoption across diverse autonomous systems. A reference implementation is available in SDLAF (Software Development Lifecycle Automation Framework) v3.0. The central design choice is a \emph{termination law}: a run may terminate successfully if and only if no \texttt{MUST} acceptance criteria are failing.
+We propose \textbf{Verifiable Completion Contracts (VCC)}, a declarative specification format that defines the necessary and sufficient conditions for declaring an autonomous run complete. VCC is released as an open specification to encourage adoption across diverse autonomous systems. A reference implementation is available in AgentForge (Software Development Lifecycle Automation Framework) v3.0. The central design choice is a \emph{termination law}: a run may terminate successfully if and only if no \texttt{MUST} acceptance criteria are failing.
 
 \paragraph{Contributions.} This paper makes three contributions:
 \begin{enumerate}[leftmargin=*]
@@ -88,6 +88,14 @@ VCC is \emph{not} a replacement for constrained decoding. Instead, it defines a 
 (i) constrained decoding (when available), (ii) post-hoc validation with bounded remediation, and (iii) human or hybrid gates.
 This separation is motivated by provider heterogeneity and the need to express \emph{semantic} and \emph{procedural} constraints (e.g., provenance, multi-artifact dependencies) that exceed the expressiveness of JSON Schema alone.
 
+
+
+\subsection{The Autoresearch Pattern and Frozen Metrics}
+Karpathy's autoresearch loop (2026) establishes three primitives for autonomous iterative improvement: a \emph{scriptable asset} (the single file the agent modifies), a \emph{scalar metric} (a single number determining improvement), and a \emph{time-boxed cycle} (fixed duration per experiment). VCC maps directly to this pattern: the scriptable asset is the deliverable file under repair, the scalar metric is the VCC criterion pass/fail (binary, immutable), and the time-boxed cycle is one repair attempt per iteration.
+
+Iacono's analysis of autoresearch identifies the \emph{frozen metric} as the critical architectural constraint: ``A system that can rewrite both the exam and the answers will always pass.'' VCC enforces this separation---the acceptance criteria are locked during execution, and the agent has no mechanism to modify them. This evaluation lock is structurally identical to autoresearch's requirement that the scoring function sit in a separate, immutable file.
+
+The AgentForge implementation extends the autoresearch pattern with \emph{dogfooding}: after each repair attempt, the specific VCC criterion is re-evaluated via a callback (\texttt{VerifyAtomFn}). If the criterion still fails, the \emph{new} failure message is fed back as context for the next attempt, ensuring the model sees its own failed fix rather than blindly assuming success. \emph{Stagnation detection} halts the loop if no improvement (fewer failing criteria) is observed for $n$ consecutive outer iterations, preventing unbounded spinning without hard-capping iteration count.
 
 \section{VCC Model and Semantics}
 \subsection{Contract Elements}
@@ -193,19 +201,19 @@ VCC can be integrated as a module that:
 
 This converts heuristic quality signals into enforceable acceptance criteria (e.g., a \texttt{MUST} criterion requiring score $\geq \tau$ when configured), while preserving extensibility to domain-specific validators.
 
-\paragraph{Reference Implementation.} A production implementation of VCC is available in SDLAF (Software Development Lifecycle Automation Framework) v3.0. The implementation includes the reference JSON Schema, TypeScript adapter interfaces, and universal validators for structure, traceability, consistency, provenance, and AI-judged rubrics.
+\paragraph{Reference Implementation.} A production implementation of VCC is available in AgentForge (Software Development Lifecycle Automation Framework) v3.0. The implementation includes the reference JSON Schema, TypeScript adapter interfaces, and universal validators for structure, traceability, consistency, provenance, and AI-judged rubrics.
 
 \subsection{Reference Schema and Adapter Interfaces}
 A reference JSON Schema for VCC v1 was implemented to support machine validation and forward-compatible evolution (Schema ID: \texttt{https://sdlaf.dev/schemas/vcc/v1/schema.json}).
 A TypeScript reference interface set defines adapter boundaries (planning, execution, validation, packaging, delivery) to keep the orchestration kernel domain-agnostic.
 Both the schema and reference interfaces are provided as supplementary material with this manuscript.
 
-\section{Empirical Evaluation: SDLAF Contract-Driven Convergence Regression}
+\section{Empirical Evaluation: AgentForge Contract-Driven Convergence Regression}
 
-This section reports a focused case study drawn from the SDLAF v3.0.0-alpha test regimen (2026-01-09), where runs were marked \texttt{COMPLETED} despite failing \texttt{MUST} acceptance criteria. The objective is to validate that VCC's semantics eliminate this failure mode by making acceptance satisfaction the sole success condition.
+This section reports a focused case study drawn from the AgentForge v3.0.0-alpha test regimen (2026-01-09), where runs were marked \texttt{COMPLETED} despite failing \texttt{MUST} acceptance criteria. The objective is to validate that VCC's semantics eliminate this failure mode by making acceptance satisfaction the sole success condition.
 
 \subsection{System Under Test}
-SDLAF is a production-grade autonomous workflow framework with a large codebase and extensive automated test coverage. The system implements iterative refinement, deliverable validation, and governance controls, but (prior to contract-driven convergence) allowed procedural completion to imply success.
+AgentForge is a production-grade autonomous workflow framework with a large codebase and extensive automated test coverage. The system implements iterative refinement, deliverable validation, and governance controls, but (prior to contract-driven convergence) allowed procedural completion to imply success.
 
 \subsection{Regression Scenario}
 In the reported tests, quality scores fell below configured thresholds, yet the run status was \texttt{COMPLETED}. Table~\ref{tab:sdlaf_regression} summarizes the observed failure.
@@ -220,7 +228,7 @@ API   & 42--46 / 100 & 70 & COMPLETED (invalid) \\
 Local & 41--61 / 100 & 50 & COMPLETED (invalid) \\
 \bottomrule
 \end{tabular}
-\caption{SDLAF v3.0.0-alpha regression motivating contract-driven convergence: procedural completion was incorrectly treated as success.}
+\caption{AgentForge v3.0.0-alpha regression motivating contract-driven convergence: procedural completion was incorrectly treated as success.}
 \label{tab:sdlaf_regression}
 \end{table}
 
@@ -260,6 +268,31 @@ The E2E validation confirms correctness of VCC enforcement. For future benchmark
 (iv) \emph{failure transparency}, measured as the completeness of evidence records attached to failed criteria.
 
 
+
+\subsection{Production Benchmark: AgentForge v1.0.0-alpha.1 (March 2026)}
+Table~\ref{tab:agentforge_benchmarks} reports results from 10 benchmark runs across 5 projects and 2 local LLMs, exercising the full six-gate pipeline including VCC-driven Ralph Loop repair with dogfooding and stagnation detection.
+
+\begin{table}[t]
+\centering
+\caption{AgentForge production benchmarks (March 2026). OmniCoder-9B on RTX 3080 Ti 12GB, NousCoder-14B on RTX 5080 16GB. All runs self-contained (zero cloud dependencies).}
+\label{tab:agentforge_benchmarks}
+\begin{tabular}{lcc}
+\toprule
+Project & OmniCoder-9B & NousCoder-14B \\
+\midrule
+Zeeter (Twitter clone, JWT, SQLite) & PASS 96\%, 4.1 min & PASS, 17 min \\
+RealWorld Conduit (19-endpoint API) & FAIL (36 TS errors) & PASS, 7.3 min \\
+Flight Simulator (WebGL, single file) & FAIL (instruction) & PASS, 11.3 min \\
+Browser OS (desktop simulator) & PASS, 1.8 min & PASS, 4.5 min \\
+Bumper Cars (2D game, AI opponents) & PASS, 1.7 min & PASS 100\%, 17.8 min \\
+\midrule
+\textbf{Total} & \textbf{3/5 (60\%)} & \textbf{5/5 (100\%)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Key observations: (i)~VCC Repair Gate converged on every successful run (3 criteria resolved in 1 outer iteration, 3--7 seconds overhead). (ii)~The 9B model failures were correctly identified by VCC as model quality limitations, not pipeline failures---VCC attempted repair but the model could not produce correct multi-file TypeScript within its capability ceiling. (iii)~Compound learning persisted diagnosis entries across runs via JSONL, and prior failure patterns were injected into subsequent repair prompts. (iv)~Dogfooding via \texttt{VerifyAtomFn} callback prevented the inner loop from marking criteria resolved without re-evaluation, eliminating the blind-success failure mode observed in earlier iterations.
+
 \section{Discussion}
 VCC reframes autonomy from intent-driven execution to outcome-driven verification. It is compatible with heterogeneous domains because validators are adapters: deterministic checks for structure, schemas, and provenance can coexist with AI-judged criteria where appropriate. The approach also clarifies failure semantics: if budgets are exhausted before MUST criteria pass, the system terminates with explicit failure and a machine-readable set of unmet requirements.
 
@@ -278,7 +311,7 @@ The VCC specification is released as an open standard under the MIT license. The
   \item \textbf{Example Contracts}: Research, software, and hardware domain examples
   \item \textbf{Validation Evidence}: Raw execution logs and generated deliverables are included in the supplementary materials, enabling independent verification of empirical claims.
 \end{itemize}
-The specification, reference implementation, and examples are available at \url{https://github.com/SDLAF/vcc-spec}.
+The specification, reference implementation, and examples are available at \url{https://github.com/AgentForge/vcc-spec}.
 
 \paragraph{Versioning.} This paper documents VCC v1.0. Future versions may extend constraint expressiveness, add validator types, or support compositional contracts while preserving backward compatibility at the schema level.
 
