@@ -32,8 +32,12 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Lightweight Formal Methods and Executable Specifications}{2}{subsection.3.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Continuous Delivery Gates and Requirements Traceability}{2}{subsection.3.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Structured Generation and Constrained Decoding for LLM Outputs}{2}{subsection.3.4}\protected@file@percent }
+\citation{karpathy_autoresearch}
+\citation{karpathy_autoresearch}
+\citation{ghuntley_ralph_loop}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Guardrails and Output Validation Frameworks}{3}{subsection.3.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Positioning.}{3}{section*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}The Autoresearch Pattern and Frozen Metrics}{3}{subsection.3.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {4}VCC Model and Semantics}{3}{section.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Contract Elements}{3}{subsection.4.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Formal Semantics}{3}{subsection.4.2}\protected@file@percent }
@@ -41,21 +45,32 @@
 \@writefile{toc}{\contentsline {section}{\numberline {5}Contract-Driven Convergence Algorithm}{4}{section.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Termination Conditions}{4}{subsection.5.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Pseudocode}{4}{subsection.5.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Contract-first stagnation.}{4}{section*.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6}Implementation Considerations}{4}{section.6}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces SDLAF v3.0.0-alpha regression motivating contract-driven convergence: procedural completion was incorrectly treated as success.}}{5}{table.1}\protected@file@percent }
-\newlabel{tab:sdlaf_regression}{{1}{5}{SDLAF v3.0.0-alpha regression motivating contract-driven convergence: procedural completion was incorrectly treated as success}{table.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces AgentForge v3.0.0-alpha regression motivating contract-driven convergence: procedural completion was incorrectly treated as success.}}{5}{table.1}\protected@file@percent }
+\newlabel{tab:agentforge_regression}{{1}{5}{AgentForge v3.0.0-alpha regression motivating contract-driven convergence: procedural completion was incorrectly treated as success}{table.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{Contract-first stagnation.}{5}{section*.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Implementation Considerations}{5}{section.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Reference Implementation.}{5}{section*.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Reference Schema and Adapter Interfaces}{5}{subsection.6.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {7}Empirical Evaluation: SDLAF Contract-Driven Convergence Regression}{5}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Empirical Evaluation: AgentForge Contract-Driven Convergence Regression}{5}{section.7}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {7.1}System Under Test}{5}{subsection.7.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Regression Scenario}{5}{subsection.7.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Expected Post-Fix Behavior}{5}{subsection.7.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Measurement Targets}{5}{subsection.7.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {8}Discussion}{5}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Observed Behavior}{5}{subsection.7.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces E2E validation results from real orchestration with contract-driven convergence enabled.}}{6}{table.2}\protected@file@percent }
+\newlabel{tab:e2e_results}{{2}{6}{E2E validation results from real orchestration with contract-driven convergence enabled}{table.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces AgentForge production benchmarks (March 2026). OmniCoder-9B on RTX 3080 Ti 12GB, NousCoder-14B on RTX 5080 16GB. All runs self-contained (zero cloud dependencies).}}{6}{table.3}\protected@file@percent }
+\newlabel{tab:agentforge_benchmarks}{{3}{6}{AgentForge production benchmarks (March 2026). OmniCoder-9B on RTX 3080 Ti 12GB, NousCoder-14B on RTX 5080 16GB. All runs self-contained (zero cloud dependencies)}{table.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Implementation Refinements Discovered}{6}{subsection.7.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.5}Metrics and Future Benchmarking}{6}{subsection.7.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.6}Production Benchmark: AgentForge v1.0.0-alpha.1 (March 2026)}{6}{subsection.7.6}\protected@file@percent }
 \bibstyle{unsrt}
 \bibdata{references}
 \bibcite{langgraph_recursion_limit_js}{1}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Discussion}{7}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9}Limitations and Future Work}{7}{section.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {10}Ethical Considerations}{7}{section.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {11}Specification Availability}{7}{section.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Versioning.}{7}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {12}Conclusion}{7}{section.12}\protected@file@percent }
 \bibcite{langgraph_recursion_limit_py}{2}
 \bibcite{langgraph_graph_api_py}{3}
 \bibcite{meyer_dbc_ieee}{4}
@@ -63,10 +78,6 @@
 \bibcite{lamport_tla_sigops}{6}
 \bibcite{jackson_alloy_tosem}{7}
 \bibcite{humble_farley_cd}{8}
-\@writefile{toc}{\contentsline {section}{\numberline {9}Limitations and Future Work}{6}{section.9}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {10}Ethical Considerations}{6}{section.10}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {11}Specification Availability}{6}{section.11}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {12}Conclusion}{6}{section.12}\protected@file@percent }
 \bibcite{gotel_finkelstein_traceability}{9}
 \bibcite{gotel_requirements_traceable_pdf}{10}
 \bibcite{jsonschemabench_arxiv}{11}
@@ -81,4 +92,6 @@
 \bibcite{anthropic_advanced_tool_use}{20}
 \bibcite{guardrails_position_paper}{21}
 \bibcite{jsonformer_repo}{22}
-\gdef \@abspage@last{7}
+\bibcite{karpathy_autoresearch}{23}
+\bibcite{ghuntley_ralph_loop}{24}
+\gdef \@abspage@last{8}

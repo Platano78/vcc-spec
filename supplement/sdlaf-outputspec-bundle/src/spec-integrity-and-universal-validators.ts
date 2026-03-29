@@ -1,5 +1,5 @@
 /* -------------------------------------------------------------------------
- * SDLAF Verifiable Completion Contract (VCC) v1 — Spec Integrity Pass + Default Universal Validators
+ * AgentForge Verifiable Completion Contract (VCC) v1 — Spec Integrity Pass + Default Universal Validators
  *
  * What this module provides:
  *  1) specIntegrityPass()
@@ -27,7 +27,7 @@ export type EvidenceType = "auto" | "ai-judged" | "human" | "hybrid";
 export type GateWhen = "before_final" | "before_packaging" | "before_delivery";
 
 export interface VCCSpec {
-  vccVersion: "sdlaf.vcc/v1";
+  vccVersion: "agentforge.vcc/v1";
   id: string;
   title: string;
   summary: string;
@@ -267,7 +267,7 @@ export async function specIntegrityPass(
   }
 
   // Basic version check
-  if (spec.vccVersion !== "sdlaf.vcc/v1") {
+  if (spec.vccVersion !== "agentforge.vcc/v1") {
     issues.push({
       severity: "error",
       code: "VERSION_UNSUPPORTED",
@@ -664,7 +664,7 @@ async function writeEvidence(ctx: RunContext, evidenceUri: string, contents: str
 }
 
 function evidenceUriFor(acId: string): string {
-  return `sdlaf-exports/evidence/${acId}.txt`;
+  return `agentforge-exports/evidence/${acId}.txt`;
 }
 
 /* ------------------------------ Validator: Structure Required Sections ------------------------------ */

@@ -122,4 +122,18 @@ Yi~Dong, Ronghui Mu, Gaojie Jin, Yi~Qi, Jinwei Hu, Xingyu Zhao, Jie Meng,
   language models.
 \newblock GitHub Repository, 2023.
 
+\bibitem{karpathy_autoresearch}
+Andrej Karpathy.
+\newblock autoresearch — autonomous research loop, 2026.
+\newblock Three primitives: scriptable asset, scalar metric, time-boxed cycle.
+  Any metric that is reasonably efficient to evaluate can be autoresearched by
+  an agent swarm.
+
+\bibitem{ghuntley_ralph_loop}
+Geoffrey Huntley.
+\newblock The loop — ralph loop plugin for claude code, 2025.
+\newblock Anthropic-verified Claude Code plugin (38,263 installs). Intercepts
+  session exits and re-feeds prompts while preserving file modifications and
+  git history.
+
 \end{thebibliography}

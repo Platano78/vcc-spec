@@ -1,5 +1,5 @@
 /**
- * SDLAF Verifiable Completion Contract (VCC) v1 — Adapter Interfaces (TypeScript)
+ * AgentForge Verifiable Completion Contract (VCC) v1 — Adapter Interfaces (TypeScript)
  *
  * The orchestrator kernel remains domain-agnostic by depending only on:
  *  - VCCSpec (artifact DAG + acceptance criteria + gates)
@@ -16,7 +16,7 @@ export type EvidenceType = "auto" | "ai-judged" | "human" | "hybrid";
 export type GateWhen = "before_final" | "before_packaging" | "before_delivery";
 
 export interface VCCSpec {
-  vccVersion: "sdlaf.vcc/v1";
+  vccVersion: "agentforge.vcc/v1";
   id: string;
   title: string;
   summary: string;

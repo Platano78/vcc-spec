@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://sdlaf.dev/schemas/vcc/v1/schema.json",
+  "$id": "https://agentforge.dev/schemas/vcc/v1/schema.json",
   "title": "Verifiable Completion Contract (VCC) v1",
   "type": "object",
   "required": [
@@ -18,7 +18,7 @@
   ],
   "properties": {
     "vccVersion": {
-      "const": "sdlaf.vcc/v1"
+      "const": "agentforge.vcc/v1"
     },
     "id": {
       "type": "string",

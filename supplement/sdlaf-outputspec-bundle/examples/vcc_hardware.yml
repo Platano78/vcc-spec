@@ -1,4 +1,4 @@
-vccVersion: "sdlaf.vcc/v1"
+vccVersion: "agentforge.vcc/v1"
 id: "outspec-hardware-001"
 title: "Prototype-ready hardware package (BOM + assembly + test)"
 summary: "Produce a manufacturing packet that a third party can build and validate."
@@ -25,7 +25,7 @@ artifacts:
     description: "Functional requirements and environmental constraints."
     formats:
       - mediaType: "text/markdown"
-        uri: "sdlaf-exports/deliverables/requirements.md"
+        uri: "agentforge-exports/deliverables/requirements.md"
     required: true
     dependsOn: []
     owners: ["role:SystemEngineer"]
@@ -37,7 +37,7 @@ artifacts:
     description: "High-level architecture: subsystems, interfaces, assumptions."
     formats:
       - mediaType: "text/markdown"
-        uri: "sdlaf-exports/deliverables/architecture.md"
+        uri: "agentforge-exports/deliverables/architecture.md"
     required: true
     dependsOn: ["A1"]
     owners: ["role:DesignEngineer"]
@@ -49,9 +49,9 @@ artifacts:
     description: "BOM with quantities, alternates, sourcing notes, and risk flags."
     formats:
       - mediaType: "text/csv"
-        uri: "sdlaf-exports/deliverables/bom.csv"
+        uri: "agentforge-exports/deliverables/bom.csv"
       - mediaType: "application/json"
-        uri: "sdlaf-exports/deliverables/bom.json"
+        uri: "agentforge-exports/deliverables/bom.json"
     required: true
     dependsOn: ["A2"]
     owners: ["role:ManufacturingEngineer"]
@@ -65,7 +65,7 @@ artifacts:
     description: "Step-by-step assembly, tools required, hazards, and checkpoints."
     formats:
       - mediaType: "text/markdown"
-        uri: "sdlaf-exports/deliverables/assembly.md"
+        uri: "agentforge-exports/deliverables/assembly.md"
     required: true
     dependsOn: ["A2", "A3"]
     owners: ["role:ManufacturingEngineer"]
@@ -77,7 +77,7 @@ artifacts:
     description: "Verification plan: tests, equipment, procedures, pass/fail criteria."
     formats:
       - mediaType: "text/markdown"
-        uri: "sdlaf-exports/deliverables/test_plan.md"
+        uri: "agentforge-exports/deliverables/test_plan.md"
     required: true
     dependsOn: ["A1", "A2"]
     owners: ["role:TestEngineer"]
@@ -89,7 +89,7 @@ artifacts:
     description: "Risks, mitigations, severity, owners, and open decisions."
     formats:
       - mediaType: "text/markdown"
-        uri: "sdlaf-exports/deliverables/risk_register.md"
+        uri: "agentforge-exports/deliverables/risk_register.md"
     required: true
     dependsOn: ["A1", "A2", "A3"]
     owners: ["role:ProgramManager"]
@@ -156,14 +156,14 @@ packaging:
     inputs: ["A1", "A2", "A3", "A4", "A5", "A6"]
     method: "bundle"
     format: "zip"
-    uri: "sdlaf-exports/package/hardware_packet.zip"
+    uri: "agentforge-exports/package/hardware_packet.zip"
     manifestRequired: true
 
 delivery:
   - deliveryId: "D-HW-1"
     channel: "filesystem"
     target: "local"
-    uri: "sdlaf-exports/package/hardware_packet.zip"
+    uri: "agentforge-exports/package/hardware_packet.zip"
     notify: ["role:Owner"]
 
 provenancePolicy:

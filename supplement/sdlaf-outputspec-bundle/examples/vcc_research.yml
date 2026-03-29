@@ -1,10 +1,10 @@
-vccVersion: "sdlaf.vcc/v1"
+vccVersion: "agentforge.vcc/v1"
 id: "outspec-research-001"
 title: "Competitive landscape research + evidence pack"
 summary: "Produce a publication-grade report with a transparent evidence chain and a reusable dataset."
 
 intent:
-  problemStatement: "Map the landscape of systems similar to SDLAF and position SDLAF uniquely."
+  problemStatement: "Map the landscape of systems similar to AgentForge and position AgentForge uniquely."
   targetAudience: ["technical leadership", "engineering", "product strategy"]
   inScope:
     - "Identify comparable projects/systems (open-source + research)"
@@ -26,7 +26,7 @@ artifacts:
     description: "Search protocol: queries, inclusion/exclusion criteria, time window, data fields collected."
     formats:
       - mediaType: "text/markdown"
-        uri: "sdlaf-exports/deliverables/research_protocol.md"
+        uri: "agentforge-exports/deliverables/research_protocol.md"
     required: true
     dependsOn: []
     owners: ["role:ResearchLead"]
@@ -38,9 +38,9 @@ artifacts:
     description: "Machine-readable catalog of systems with fields: name, link, category, claims, evidence, notes."
     formats:
       - mediaType: "text/csv"
-        uri: "sdlaf-exports/deliverables/landscape_catalog.csv"
+        uri: "agentforge-exports/deliverables/landscape_catalog.csv"
       - mediaType: "application/json"
-        uri: "sdlaf-exports/deliverables/landscape_catalog.json"
+        uri: "agentforge-exports/deliverables/landscape_catalog.json"
     required: true
     dependsOn: ["A1"]
     owners: ["role:Analyst"]
@@ -54,9 +54,9 @@ artifacts:
     description: "Narrative report: landscape map, comparisons, positioning, recommendations."
     formats:
       - mediaType: "text/markdown"
-        uri: "sdlaf-exports/deliverables/landscape_report.md"
+        uri: "agentforge-exports/deliverables/landscape_report.md"
       - mediaType: "application/pdf"
-        uri: "sdlaf-exports/package/landscape_report.pdf"
+        uri: "agentforge-exports/package/landscape_report.pdf"
     required: true
     dependsOn: ["A1", "A2"]
     owners: ["role:Writer", "role:Editor"]
@@ -68,7 +68,7 @@ artifacts:
     description: "Evidence bundle: source list, notes, snapshots, and extraction justifications."
     formats:
       - mediaType: "application/zip"
-        uri: "sdlaf-exports/package/evidence_pack.zip"
+        uri: "agentforge-exports/package/evidence_pack.zip"
     required: true
     dependsOn: ["A2", "A3"]
     owners: ["role:ResearchLead"]
@@ -151,14 +151,14 @@ packaging:
     inputs: ["A1", "A2", "A3", "A4"]
     method: "bundle"
     format: "zip"
-    uri: "sdlaf-exports/package/final_research_bundle.zip"
+    uri: "agentforge-exports/package/final_research_bundle.zip"
     manifestRequired: true
 
 delivery:
   - deliveryId: "D-RES-1"
     channel: "filesystem"
     target: "local"
-    uri: "sdlaf-exports/package/final_research_bundle.zip"
+    uri: "agentforge-exports/package/final_research_bundle.zip"
     notify: ["role:Owner"]
 
 provenancePolicy:

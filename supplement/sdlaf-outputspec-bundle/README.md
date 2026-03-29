@@ -1,9 +1,9 @@
-# SDLAF OutputSpec Bundle
+# AgentForge VCC Bundle
 
 This bundle contains:
 
 ## Specs
-- `schemas/sdlaf-outputspec-v1.schema.json` — JSON Schema (Draft 2020-12) for OutputSpec v1.
+- `schemas/vcc-v1.schema.json` — JSON Schema (Draft 2020-12) for VCC v1.
 
 ## TypeScript
 - `src/adapter-interfaces.ts` — Domain-agnostic adapter interfaces (planner/executor/validator/packager/deliverer).

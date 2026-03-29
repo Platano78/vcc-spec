@@ -31,7 +31,7 @@ LLM-based autonomous systems have progressed from single-shot generation to mult
 
 This paper addresses the question: \emph{How can an autonomous execution system define and enforce successful termination such that a run completes if and only if objective acceptance criteria are satisfied?}
 
-We propose \textbf{Verifiable Completion Contracts (VCC)}, a declarative specification format that defines the necessary and sufficient conditions for declaring an autonomous run complete. VCC is released as an open specification to encourage adoption across diverse autonomous systems. A reference implementation is available in AgentForge (Software Development Lifecycle Automation Framework) v3.0. The central design choice is a \emph{termination law}: a run may terminate successfully if and only if no \texttt{MUST} acceptance criteria are failing.
+We propose \textbf{Verifiable Completion Contracts (VCC)}, a declarative specification format that defines the necessary and sufficient conditions for declaring an autonomous run complete. VCC is released as an open specification to encourage adoption across diverse autonomous systems. A reference implementation is available in AgentForge (npm: \texttt{forgeagent}) v3.0. The central design choice is a \emph{termination law}: a run may terminate successfully if and only if no \texttt{MUST} acceptance criteria are failing.
 
 \paragraph{Contributions.} This paper makes three contributions:
 \begin{enumerate}[leftmargin=*]
@@ -201,10 +201,10 @@ VCC can be integrated as a module that:
 
 This converts heuristic quality signals into enforceable acceptance criteria (e.g., a \texttt{MUST} criterion requiring score $\geq \tau$ when configured), while preserving extensibility to domain-specific validators.
 
-\paragraph{Reference Implementation.} A production implementation of VCC is available in AgentForge (Software Development Lifecycle Automation Framework) v3.0. The implementation includes the reference JSON Schema, TypeScript adapter interfaces, and universal validators for structure, traceability, consistency, provenance, and AI-judged rubrics.
+\paragraph{Reference Implementation.} A production implementation of VCC is available in AgentForge (npm: \texttt{forgeagent}) v3.0. The implementation includes the reference JSON Schema, TypeScript adapter interfaces, and universal validators for structure, traceability, consistency, provenance, and AI-judged rubrics.
 
 \subsection{Reference Schema and Adapter Interfaces}
-A reference JSON Schema for VCC v1 was implemented to support machine validation and forward-compatible evolution (Schema ID: \texttt{https://sdlaf.dev/schemas/vcc/v1/schema.json}).
+A reference JSON Schema for VCC v1 was implemented to support machine validation and forward-compatible evolution (Schema ID: \texttt{https://agentforge.dev/schemas/vcc/v1/schema.json}).
 A TypeScript reference interface set defines adapter boundaries (planning, execution, validation, packaging, delivery) to keep the orchestration kernel domain-agnostic.
 Both the schema and reference interfaces are provided as supplementary material with this manuscript.
 
@@ -216,7 +216,7 @@ This section reports a focused case study drawn from the AgentForge v3.0.0-alpha
 AgentForge is a production-grade autonomous workflow framework with a large codebase and extensive automated test coverage. The system implements iterative refinement, deliverable validation, and governance controls, but (prior to contract-driven convergence) allowed procedural completion to imply success.
 
 \subsection{Regression Scenario}
-In the reported tests, quality scores fell below configured thresholds, yet the run status was \texttt{COMPLETED}. Table~\ref{tab:sdlaf_regression} summarizes the observed failure.
+In the reported tests, quality scores fell below configured thresholds, yet the run status was \texttt{COMPLETED}. Table~\ref{tab:agentforge_regression} summarizes the observed failure.
 
 \begin{table}[t]
 \centering
@@ -229,7 +229,7 @@ Local & 41--61 / 100 & 50 & COMPLETED (invalid) \\
 \bottomrule
 \end{tabular}
 \caption{AgentForge v3.0.0-alpha regression motivating contract-driven convergence: procedural completion was incorrectly treated as success.}
-\label{tab:sdlaf_regression}
+\label{tab:agentforge_regression}
 \end{table}
 
 \subsection{Observed Behavior}
@@ -311,7 +311,7 @@ The VCC specification is released as an open standard under the MIT license. The
   \item \textbf{Example Contracts}: Research, software, and hardware domain examples
   \item \textbf{Validation Evidence}: Raw execution logs and generated deliverables are included in the supplementary materials, enabling independent verification of empirical claims.
 \end{itemize}
-The specification, reference implementation, and examples are available at \url{https://github.com/AgentForge/vcc-spec}.
+The specification, reference implementation, and examples are available at \url{https://github.com/Platano78/vcc-spec}.
 
 \paragraph{Versioning.} This paper documents VCC v1.0. Future versions may extend constraint expressiveness, add validator types, or support compositional contracts while preserving backward compatibility at the schema level.
 

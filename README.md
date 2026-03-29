@@ -115,7 +115,7 @@ return FAILURE;
 
 ## Reference Implementation
 
-A production implementation is available in [AgentForge](https://github.com/Platano78/AgentForge) v3.0.
+A production implementation is available in [AgentForge](https://github.com/Platano78/AgentForge) (npm: `forgeagent`) v3.0.
 
 ## Related Work
 
@@ -139,4 +139,4 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 ---
 
-**Created by the AgentForge Project** | [Documentation](https://github.com/Platano78/vcc-spec) | [GitHub](https://github.com/Platano78/vcc-spec)
+**Created by the AgentForge Project** | [Documentation](https://agentforge.dev/vcc) | [GitHub](https://github.com/Platano78/vcc-spec)

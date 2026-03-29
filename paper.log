@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.1.12)  12 JAN 2026 19:56
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.1.12)  29 MAR 2026 03:09
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -661,7 +661,7 @@ Package fancyhdr Warning: \headheight is too small (14.0pt):
 
 [2{/usr/share/texmf/fonts/enc/dvips/lm/lm-ts1.enc}{/usr/share/texmf/fonts/enc/d
 vips/lm/lm-rm.enc}]
-Underfull \hbox (badness 1342) in paragraph at lines 97--98
+Underfull \hbox (badness 1342) in paragraph at lines 105--106
 []\T1/lmr/bx/n/10 (+20) Acceptance cri-te-ria\T1/lmr/m/n/10 (+20) : atomic prop
 -er-ties eval-u-ated by val-ida-tors, each la-beled with sever-ity
  []
@@ -674,8 +674,8 @@ Package fancyhdr Warning: \headheight is too small (14.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-11.2232pt}.
 
-[3{/usr/share/texmf/fonts/enc/dvips/lm/lm-mathsy.enc}{/usr/share/texmf/fonts/en
-c/dvips/lm/lm-mathit.enc}]
+[3{/usr/share/texmf/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/share/texmf/fonts/en
+c/dvips/lm/lm-mathsy.enc}]
 
 Package fancyhdr Warning: \headheight is too small (14.0pt): 
 (fancyhdr)                Make it at least 25.2232pt, for example:
@@ -693,7 +693,7 @@ Package fancyhdr Warning: \headheight is too small (14.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-11.2232pt}.
 
-[5] (./paper.bbl
+[5]
 
 Package fancyhdr Warning: \headheight is too small (14.0pt): 
 (fancyhdr)                Make it at least 25.2232pt, for example:
@@ -702,7 +702,7 @@ Package fancyhdr Warning: \headheight is too small (14.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-11.2232pt}.
 
-[6])
+[6] (./paper.bbl
 
 Package fancyhdr Warning: \headheight is too small (14.0pt): 
 (fancyhdr)                Make it at least 25.2232pt, for example:
@@ -711,7 +711,16 @@ Package fancyhdr Warning: \headheight is too small (14.0pt):
 
 (fancyhdr)                \addtolength{\topmargin}{-11.2232pt}.
 
-[7] (./paper.aux)
+[7])
+
+Package fancyhdr Warning: \headheight is too small (14.0pt): 
+(fancyhdr)                Make it at least 25.2232pt, for example:
+(fancyhdr)                \setlength{\headheight}{25.2232pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+
+(fancyhdr)                \addtolength{\topmargin}{-11.2232pt}.
+
+[8] (./paper.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
@@ -721,16 +730,16 @@ L3 programming layer <2024-01-22>
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 Package rerunfilecheck Info: File `paper.out' has not changed.
-(rerunfilecheck)             Checksum: E4CDFC7A245ABD6D288161D5898C2AEE;5579.
+(rerunfilecheck)             Checksum: BD18066B85BAC7AEE5A32CD976780AB1;6538.
  ) 
 Here is how much of TeX's memory you used:
- 13449 strings out of 476182
- 209355 string characters out of 5795595
- 1937975 words of memory out of 5000000
- 35002 multiletter control sequences out of 15000+600000
- 630659 words of font info for 161 fonts, out of 8000000 for 9000
+ 13483 strings out of 476182
+ 209814 string characters out of 5795595
+ 1938975 words of memory out of 5000000
+ 35009 multiletter control sequences out of 15000+600000
+ 631536 words of font info for 170 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 75i,12n,79p,1468b,595s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,13n,79p,1468b,595s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf/fonts/type1/public/lm/lmbx10.pfb></usr/share/texmf/fonts/ty
 pe1/public/lm/lmbx12.pfb></usr/share/texmf/fonts/type1/public/lm/lmcsc10.pfb></
 usr/share/texmf/fonts/type1/public/lm/lmmi10.pfb></usr/share/texmf/fonts/type1/
@@ -739,10 +748,10 @@ re/texmf/fonts/type1/public/lm/lmr7.pfb></usr/share/texmf/fonts/type1/public/lm
 /lmri10.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy10.pfb></usr/share/texm
 f/fonts/type1/public/lm/lmtt10.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt
 i10.pfb>
-Output written on paper.pdf (7 pages, 258655 bytes).
+Output written on paper.pdf (8 pages, 267854 bytes).
 PDF statistics:
- 298 PDF objects out of 1000 (max. 8388607)
- 262 compressed objects within 3 object streams
- 76 named destinations out of 1000 (max. 500000)
- 42201 words of extra memory for PDF output out of 42996 (max. 10000000)
+ 326 PDF objects out of 1000 (max. 8388607)
+ 289 compressed objects within 3 object streams
+ 85 named destinations out of 1000 (max. 500000)
+ 42225 words of extra memory for PDF output out of 42996 (max. 10000000)
 

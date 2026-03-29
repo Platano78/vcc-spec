@@ -1,4 +1,4 @@
-vccVersion: "sdlaf.vcc/v1"
+vccVersion: "agentforge.vcc/v1"
 id: "outspec-software-001"
 title: "Repo change delivered as PR with quality gates"
 summary: "Implement a scoped change in a repo with tests, review gates, and provenance."
@@ -24,7 +24,7 @@ artifacts:
     description: "Change request with acceptance criteria."
     formats:
       - mediaType: "text/markdown"
-        uri: "sdlaf-exports/deliverables/requirements.md"
+        uri: "agentforge-exports/deliverables/requirements.md"
     required: true
     dependsOn: []
     owners: ["role:ProductLead"]
@@ -36,7 +36,7 @@ artifacts:
     description: "Working branch containing code + tests."
     formats:
       - mediaType: "application/vnd.git"
-        uri: "worktree://sdlaf-run/<runId>/branch/<branchName>"
+        uri: "worktree://agentforge-run/<runId>/branch/<branchName>"
     required: true
     dependsOn: ["A1"]
     owners: ["role:Developer"]
@@ -48,7 +48,7 @@ artifacts:
     description: "Test run outputs (and lint/build logs if applicable)."
     formats:
       - mediaType: "text/plain"
-        uri: "sdlaf-exports/evidence/test_results.txt"
+        uri: "agentforge-exports/evidence/test_results.txt"
     required: true
     dependsOn: ["A2"]
     owners: ["role:CIEngineer"]
@@ -60,7 +60,7 @@ artifacts:
     description: "User-facing explanation of the change."
     formats:
       - mediaType: "text/markdown"
-        uri: "sdlaf-exports/deliverables/release_notes.md"
+        uri: "agentforge-exports/deliverables/release_notes.md"
     required: true
     dependsOn: ["A2"]
     owners: ["role:Writer"]
@@ -72,7 +72,7 @@ artifacts:
     description: "PR metadata and link (or local PR bundle if offline)."
     formats:
       - mediaType: "application/json"
-        uri: "sdlaf-exports/deliverables/pr_metadata.json"
+        uri: "agentforge-exports/deliverables/pr_metadata.json"
     required: true
     dependsOn: ["A2", "A3", "A4"]
     owners: ["role:ReleaseManager"]
@@ -144,14 +144,14 @@ packaging:
     inputs: ["A1", "A4", "A5"]
     method: "bundle"
     format: "zip"
-    uri: "sdlaf-exports/package/pr_bundle.zip"
+    uri: "agentforge-exports/package/pr_bundle.zip"
     manifestRequired: true
 
 delivery:
   - deliveryId: "D-SW-1"
     channel: "filesystem"
     target: "local"
-    uri: "sdlaf-exports/package/pr_bundle.zip"
+    uri: "agentforge-exports/package/pr_bundle.zip"
     notify: ["role:Owner"]
 
 provenancePolicy:
