@@ -40,7 +40,7 @@ A run **cannot** succeed if any MUST criterion is failing.
 ### 1. Define a Contract
 
 ```yaml
-vccVersion: "sdlaf.vcc/v1"
+vccVersion: "agentforge.vcc/v1"
 id: "my-task-001"
 title: "Generate API Documentation"
 
@@ -115,7 +115,7 @@ return FAILURE;
 
 ## Reference Implementation
 
-A production implementation is available in [SDLAF](https://github.com/SDLAF/sdlaf) v3.0.
+A production implementation is available in [AgentForge](https://github.com/Platano78/AgentForge) v3.0.
 
 ## Related Work
 
@@ -130,8 +130,8 @@ VCC builds on established foundations:
 
 VCC is an open specification. Contributions welcome:
 
-- [GitHub Issues](https://github.com/SDLAF/vcc-spec/issues) - Bug reports, feature requests
-- [Pull Requests](https://github.com/SDLAF/vcc-spec/pulls) - Schema improvements, new validators
+- [GitHub Issues](https://github.com/Platano78/vcc-spec/issues) - Bug reports, feature requests
+- [Pull Requests](https://github.com/Platano78/vcc-spec/pulls) - Schema improvements, new validators
 
 ## License
 
@@ -139,4 +139,4 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 ---
 
-**Created by the SDLAF Project** | [Documentation](https://sdlaf.dev/vcc) | [GitHub](https://github.com/SDLAF/vcc-spec)
+**Created by the AgentForge Project** | [Documentation](https://github.com/Platano78/vcc-spec) | [GitHub](https://github.com/Platano78/vcc-spec)
